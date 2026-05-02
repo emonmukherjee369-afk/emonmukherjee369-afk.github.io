@@ -3,28 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hand Tracking App</title>
+    <title>Futuristic Hand Tracking</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Load Futuristic Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     
     <!-- Load MediaPipe Tasks Vision from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Hand Tracking</h1>
-        <p>Ensure your camera is active and bring your hand into view.</p>
+        <h1>Hand Tracking Interface</h1>
+        <p>SYSTEM READY // AWAITING CAMERA FEED</p>
         
         <div class="video-container">
             <video id="webcam" autoplay playsinline></video>
             <canvas id="output_canvas"></canvas>
+            <div class="scanline"></div>
             <div id="loading" class="loading-overlay">
                 <div class="spinner"></div>
-                <p>Loading Model...</p>
+                <p>INITIALIZING NEURAL NET...</p>
             </div>
         </div>
 
         <button id="enableWebcamButton" class="mdc-button mdc-button--raised">
-            <span class="mdc-button__label">ENABLE WEBCAM</span>
+            <span class="mdc-button__label">INITIATE SENSOR</span>
         </button>
     </div>
 
@@ -68,7 +72,7 @@
                 loadingOverlay.classList.add("hidden");
             } catch (error) {
                 console.error("Error loading HandLandmarker:", error);
-                loadingOverlay.innerHTML = "<p>Error loading model. Please refresh.</p>";
+                loadingOverlay.innerHTML = "<p>ERROR DETECTED // RELOAD INTERFACE</p>";
             }
         };
 
@@ -81,7 +85,7 @@
             enableWebcamButton.addEventListener("click", enableCam);
         } else {
             console.warn("getUserMedia() is not supported by your browser");
-            enableWebcamButton.innerHTML = "Webcam not supported";
+            enableWebcamButton.innerHTML = "SENSOR OFFLINE";
         }
 
         // Enable webcam function
@@ -93,10 +97,10 @@
 
             if (webcamRunning === true) {
                 webcamRunning = false;
-                enableWebcamButton.innerText = "ENABLE PREDICTIONS";
+                enableWebcamButton.innerText = "INITIATE SENSOR";
             } else {
                 webcamRunning = true;
-                enableWebcamButton.innerText = "DISABLE PREDICTIONS";
+                enableWebcamButton.innerText = "HALT SENSOR";
             }
 
             const constraints = {
@@ -108,7 +112,7 @@
                 video.addEventListener("loadeddata", predictWebcam);
             }).catch((err) => {
                 console.error("Error accessing webcam:", err);
-                alert("Camera access denied or unavailable. Please check your privacy settings.");
+                alert("SENSOR ACCESS DENIED // CHECK PERMISSIONS");
             });
         }
 
@@ -129,11 +133,27 @@
 
                 if (results.landmarks) {
                     for (const landmarks of results.landmarks) {
+                        // Apply Global Neon Glow
+                        canvasCtx.shadowColor = "#05d9e8";
+                        canvasCtx.shadowBlur = 15;
+
+                        // Draw Connections (Cyan Laser)
                         drawingUtils.drawConnectors(landmarks, HandLandmarker.HAND_CONNECTIONS, {
-                            color: "#00FF00",
-                            lineWidth: 5
+                            color: "#05d9e8",
+                            lineWidth: 6
                         });
-                        drawingUtils.drawLandmarks(landmarks, { color: "#FF0000", lineWidth: 2 });
+
+                        // Draw Landmarks (Magenta Nodes)
+                        canvasCtx.shadowColor = "#ff2a6d";
+                        canvasCtx.shadowBlur = 20;
+                        drawingUtils.drawLandmarks(landmarks, { 
+                            color: "#ff2a6d", 
+                            lineWidth: 3,
+                            radius: (data) => {
+                                // Dynamic radius based on z-depth
+                                return DrawingUtils.lerp(data.from?.z || 0, -0.15, 0.1, 8, 2);
+                            }
+                        });
                     }
                 }
                 canvasCtx.restore();
