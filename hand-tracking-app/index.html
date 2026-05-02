@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Futuristic Hand Tracking</title>
+    <title>JARVIS Vision Interface</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- Load Futuristic Font -->
@@ -14,8 +14,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>Hand Tracking Interface</h1>
-        <p>SYSTEM READY // AWAITING CAMERA FEED</p>
+        <h1>MARK XLVII HUD</h1>
+        <p>STARK INDUSTRIES // AWAITING SENSOR INPUT</p>
         
         <div class="video-container">
             <video id="webcam" autoplay playsinline></video>
@@ -23,12 +23,12 @@
             <div class="scanline"></div>
             <div id="loading" class="loading-overlay">
                 <div class="spinner"></div>
-                <p>INITIALIZING NEURAL NET...</p>
+                <p>LOADING J.A.R.V.I.S. PROTOCOLS...</p>
             </div>
         </div>
 
         <button id="enableWebcamButton" class="mdc-button mdc-button--raised">
-            <span class="mdc-button__label">INITIATE SENSOR</span>
+            <span class="mdc-button__label">ENGAGE TARGETING</span>
         </button>
     </div>
 
@@ -52,76 +52,8 @@
         let webcamRunning = false;
         let lastVideoTime = -1;
 
-        // VFX: Particle Physics System
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                
-                // Explosive random velocity
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 3 + 1;
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed;
-                
-                this.life = 1.0;     // 1.0 to 0.0
-                this.decay = Math.random() * 0.02 + 0.015; // fade rate
-                this.size = Math.random() * 6 + 3;
-            }
-
-            update() {
-                // Apply drag/friction
-                this.vx *= 0.95;
-                this.vy *= 0.95;
-                
-                // Add slight upward drift (anti-gravity energy effect)
-                this.vy -= 0.1;
-                
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life -= this.decay;
-            }
-
-            draw(ctx) {
-                if (this.life <= 0) return;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-            }
-        }
-
-        class ParticleSystem {
-            constructor() {
-                this.particles = [];
-            }
-
-            emit(x, y, color, count = 3) {
-                for (let i = 0; i < count; i++) {
-                    this.particles.push(new Particle(x, y, color));
-                }
-            }
-
-            updateAndDraw(ctx) {
-                // Use additive blending for super bright glowing fire/plasma effects
-                ctx.globalCompositeOperation = 'lighter';
-                
-                for (let i = this.particles.length - 1; i >= 0; i--) {
-                    let p = this.particles[i];
-                    p.update();
-                    p.draw(ctx);
-                    if (p.life <= 0) {
-                        this.particles.splice(i, 1);
-                    }
-                }
-                
-                // Reset blend mode for anything else drawn
-                ctx.globalCompositeOperation = 'source-over';
-            }
-        }
-
-        const vfx = new ParticleSystem();
+        // Initialize drawing utility
+        const drawingUtils = new DrawingUtils(canvasCtx);
 
         // Create HandLandmarker instance
         const createHandLandmarker = async () => {
@@ -140,7 +72,7 @@
                 loadingOverlay.classList.add("hidden");
             } catch (error) {
                 console.error("Error loading HandLandmarker:", error);
-                loadingOverlay.innerHTML = "<p>ERROR DETECTED // RELOAD INTERFACE</p>";
+                loadingOverlay.innerHTML = "<p>FATAL ERROR // REBOOT SYSTEM</p>";
             }
         };
 
@@ -153,7 +85,7 @@
             enableWebcamButton.addEventListener("click", enableCam);
         } else {
             console.warn("getUserMedia() is not supported by your browser");
-            enableWebcamButton.innerHTML = "SENSOR OFFLINE";
+            enableWebcamButton.innerHTML = "SENSORS DAMAGED";
         }
 
         // Enable webcam function
@@ -165,10 +97,10 @@
 
             if (webcamRunning === true) {
                 webcamRunning = false;
-                enableWebcamButton.innerText = "INITIATE SENSOR";
+                enableWebcamButton.innerText = "ENGAGE TARGETING";
             } else {
                 webcamRunning = true;
-                enableWebcamButton.innerText = "HALT SENSOR";
+                enableWebcamButton.innerText = "DISENGAGE SENSORS";
             }
 
             const constraints = {
@@ -180,9 +112,11 @@
                 video.addEventListener("loadeddata", predictWebcam);
             }).catch((err) => {
                 console.error("Error accessing webcam:", err);
-                alert("SENSOR ACCESS DENIED // CHECK PERMISSIONS");
+                alert("ACCESS DENIED // CHECK PRIVACY PROTOCOLS");
             });
         }
+
+        let rotationAngle = 0;
 
         // Predict webcam loop
         async function predictWebcam() {
@@ -193,7 +127,7 @@
 
             let startTimeMs = performance.now();
             
-            // We want to clear the canvas every frame to draw the particles
+            // Clear canvas for high-performance rendering
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
             if (lastVideoTime !== video.currentTime) {
@@ -201,33 +135,65 @@
                 const results = handLandmarker.detectForVideo(video, startTimeMs);
 
                 if (results.landmarks) {
-                    for (const landmarks of results.landmarks) {
-                        // Fingertip Indices: Thumb=4, Index=8, Middle=12, Ring=16, Pinky=20
-                        const fingertips = [4, 8, 12, 16, 20];
-                        
-                        // Cyberpunk Colors to alternate
-                        const colors = ['#05d9e8', '#ff2a6d', '#05d9e8', '#ff2a6d', '#05d9e8'];
+                    rotationAngle += 0.05; // Rotate the HUD
 
-                        for (let i = 0; i < fingertips.length; i++) {
-                            const tip = landmarks[fingertips[i]];
-                            // Convert normalized coordinates (0-1) to pixel coordinates
-                            const px = tip.x * canvasElement.width;
-                            const py = tip.y * canvasElement.height;
-                            
-                            // Emit particles from this fingertip!
-                            vfx.emit(px, py, colors[i], 3);
-                        }
+                    for (const landmarks of results.landmarks) {
+                        
+                        // 1. Draw sleek rigid robotic lines (Super Fast, No Shadow Blur)
+                        drawingUtils.drawConnectors(landmarks, HandLandmarker.HAND_CONNECTIONS, {
+                            color: "#00f3ff",
+                            lineWidth: 3
+                        });
+
+                        drawingUtils.drawLandmarks(landmarks, { 
+                            color: "#ffd700", 
+                            lineWidth: 1,
+                            radius: 3 
+                        });
+
+                        // 2. Calculate Palm Center (Landmark 9 is middle finger base)
+                        const palmBase = landmarks[0];
+                        const middleBase = landmarks[9];
+                        
+                        const centerX = ((palmBase.x + middleBase.x) / 2) * canvasElement.width;
+                        const centerY = ((palmBase.y + middleBase.y) / 2) * canvasElement.height;
+
+                        // 3. Draw Iron Man Repulsor HUD (Highly Optimized)
+                        canvasCtx.save();
+                        canvasCtx.translate(centerX, centerY);
+                        
+                        // Outer rotating dashed ring
+                        canvasCtx.rotate(rotationAngle);
+                        canvasCtx.beginPath();
+                        canvasCtx.arc(0, 0, 45, 0, Math.PI * 2);
+                        canvasCtx.strokeStyle = "#00f3ff";
+                        canvasCtx.lineWidth = 2;
+                        canvasCtx.setLineDash([10, 10]);
+                        canvasCtx.stroke();
+                        
+                        // Inner counter-rotating ring
+                        canvasCtx.rotate(-rotationAngle * 2);
+                        canvasCtx.beginPath();
+                        canvasCtx.arc(0, 0, 30, 0, Math.PI * 2);
+                        canvasCtx.strokeStyle = "#ffd700";
+                        canvasCtx.lineWidth = 4;
+                        canvasCtx.setLineDash([20, 5]);
+                        canvasCtx.stroke();
+
+                        // Core Solid Ring
+                        canvasCtx.setLineDash([]);
+                        canvasCtx.beginPath();
+                        canvasCtx.arc(0, 0, 15, 0, Math.PI * 2);
+                        canvasCtx.fillStyle = "rgba(0, 243, 255, 0.4)";
+                        canvasCtx.fill();
+                        canvasCtx.strokeStyle = "#00f3ff";
+                        canvasCtx.lineWidth = 2;
+                        canvasCtx.stroke();
+
+                        canvasCtx.restore();
                     }
                 }
             }
-
-            // Always update and draw the particles, even if no new ones are spawned
-            // This ensures they continue fading/moving after hand leaves frame
-            canvasCtx.save();
-            canvasCtx.shadowBlur = 15;
-            canvasCtx.shadowColor = '#05d9e8';
-            vfx.updateAndDraw(canvasCtx);
-            canvasCtx.restore();
 
             if (webcamRunning === true) {
                 window.requestAnimationFrame(predictWebcam);

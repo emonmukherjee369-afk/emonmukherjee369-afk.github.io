@@ -1,11 +1,9 @@
 :root {
-    --bg-color: #050508;
-    --text-color: #e2e8f0;
-    --cyan: #05d9e8;
-    --cyan-glow: rgba(5, 217, 232, 0.6);
-    --magenta: #ff2a6d;
-    --magenta-glow: rgba(255, 42, 109, 0.6);
-    --panel-bg: rgba(10, 15, 30, 0.7);
+    --bg-color: #020617; /* Very dark slate */
+    --text-color: #f1f5f9;
+    --jarvis-blue: #00f3ff;
+    --stark-gold: #ffd700;
+    --panel-bg: rgba(2, 6, 23, 0.85);
 }
 
 body {
@@ -22,7 +20,7 @@ body {
     position: relative;
 }
 
-/* Futuristic Grid Background */
+/* JARVIS Hexagonal / Tech Background */
 body::before {
     content: '';
     position: absolute;
@@ -31,30 +29,21 @@ body::before {
     width: 100vw;
     height: 100vh;
     background-image: 
-        linear-gradient(rgba(5, 217, 232, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(5, 217, 232, 0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
+        linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
     z-index: -2;
-    transform: perspective(500px) rotateX(60deg) scale(2);
-    transform-origin: center top;
-    animation: gridMove 10s linear infinite;
 }
 
-@keyframes gridMove {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 40px; }
-}
-
-/* Background Glow */
+/* Central Arc Reactor Glow */
 body::after {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 80vw;
-    height: 80vh;
-    background: radial-gradient(circle, var(--cyan-glow) 0%, transparent 60%);
-    opacity: 0.15;
+    width: 60vw;
+    height: 60vh;
+    background: radial-gradient(circle, rgba(0, 243, 255, 0.1) 0%, transparent 70%);
     transform: translate(-50%, -50%);
     z-index: -1;
     pointer-events: none;
@@ -66,53 +55,32 @@ body::after {
     width: 90%;
     padding: 2.5rem;
     background: var(--panel-bg);
-    border: 1px solid rgba(5, 217, 232, 0.2);
-    border-radius: 16px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(5, 217, 232, 0.1);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
     position: relative;
-}
-
-/* HUD Corner Accents */
-.container::before, .container::after {
-    content: '';
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    border-color: var(--cyan);
-    border-style: solid;
-    pointer-events: none;
-}
-
-.container::before {
-    top: -1px; left: -1px;
-    border-width: 3px 0 0 3px;
-    border-top-left-radius: 16px;
-}
-
-.container::after {
-    bottom: -1px; right: -1px;
-    border-width: 0 3px 3px 0;
-    border-bottom-right-radius: 16px;
+    clip-path: polygon(
+        20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px
+    );
 }
 
 h1 {
-    font-size: 3rem;
-    margin-bottom: 0.5rem;
+    font-size: 2.8rem;
+    margin-bottom: 0.2rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 4px;
-    background: linear-gradient(90deg, var(--cyan), var(--magenta));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 20px var(--cyan-glow);
+    letter-spacing: 5px;
+    color: var(--stark-gold);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 p {
-    color: #94a3b8;
+    color: var(--jarvis-blue);
     margin-bottom: 2rem;
-    font-size: 1.2rem;
-    letter-spacing: 1px;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.8;
 }
 
 .video-container {
@@ -121,11 +89,13 @@ p {
     max-width: 640px;
     margin: 0 auto 2rem;
     aspect-ratio: 4/3;
-    border-radius: 8px;
     overflow: hidden;
-    border: 2px solid var(--cyan);
-    box-shadow: 0 0 20px var(--cyan-glow), inset 0 0 20px var(--cyan-glow);
+    border: 2px solid var(--stark-gold);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
     background-color: #000;
+    clip-path: polygon(
+        15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px
+    );
 }
 
 video {
@@ -136,7 +106,7 @@ video {
     height: 100%;
     object-fit: cover;
     transform: scaleX(-1);
-    filter: contrast(1.1) saturate(1.2);
+    filter: contrast(1.1) brightness(1.2); /* Slightly stylized */
 }
 
 canvas {
@@ -151,68 +121,53 @@ canvas {
     z-index: 2;
 }
 
-/* Animated Scanline Overlay */
+/* Static Tech HUD overlay (No laggy animations) */
 .scanline {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(5, 217, 232, 0.1) 50%, rgba(5, 217, 232, 0.1));
-    background-size: 100% 4px;
+    top: 10%;
+    left: 5%;
+    width: 90%;
+    height: 80%;
+    border: 1px solid rgba(0, 243, 255, 0.2);
     z-index: 3;
     pointer-events: none;
-    animation: scanlineScroll 10s linear infinite;
-    opacity: 0.6;
 }
-
-@keyframes scanlineScroll {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 100%; }
+.scanline::before, .scanline::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--stark-gold);
 }
+.scanline::before { top: -2px; left: -2px; border-width: 2px 0 0 2px; }
+.scanline::after { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; }
 
-/* HUD Button Styling */
+/* Clean UI Button */
 button {
-    background-color: transparent;
-    color: var(--cyan);
-    border: 2px solid var(--cyan);
+    background-color: rgba(0, 243, 255, 0.1);
+    color: var(--jarvis-blue);
+    border: 1px solid var(--jarvis-blue);
     padding: 1rem 2.5rem;
     font-size: 1.2rem;
     font-weight: 700;
-    letter-spacing: 2px;
-    border-radius: 4px;
+    letter-spacing: 3px;
     cursor: pointer;
     text-transform: uppercase;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 15px rgba(5, 217, 232, 0.2), inset 0 0 10px rgba(5, 217, 232, 0.1);
+    transition: all 0.2s ease;
     font-family: 'Rajdhani', sans-serif;
-    position: relative;
-    overflow: hidden;
-}
-
-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(5, 217, 232, 0.4), transparent);
-    transition: left 0.5s ease;
+    clip-path: polygon(
+        10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px
+    );
 }
 
 button:hover {
-    background-color: var(--cyan);
+    background-color: var(--jarvis-blue);
     color: #000;
-    box-shadow: 0 0 30px var(--cyan-glow);
-}
-
-button:hover::before {
-    left: 100%;
+    border-color: var(--stark-gold);
 }
 
 button:active {
-    transform: scale(0.98);
+    transform: scale(0.95);
 }
 
 button.removed {
@@ -226,29 +181,28 @@ button.removed {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(5, 5, 8, 0.9);
+    background: rgba(2, 6, 23, 0.9);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 10;
-    backdrop-filter: blur(5px);
 }
 
 .loading-overlay.hidden {
     display: none;
 }
 
+/* Repulsor Loading Spinner */
 .spinner {
-    width: 50px;
-    height: 50px;
-    border: 3px solid transparent;
-    border-top-color: var(--magenta);
-    border-bottom-color: var(--cyan);
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(0, 243, 255, 0.2);
+    border-top-color: var(--stark-gold);
+    border-bottom-color: var(--stark-gold);
     border-radius: 50%;
-    animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    animation: spin 1.5s linear infinite;
     margin-bottom: 1.5rem;
-    box-shadow: 0 0 20px var(--magenta-glow);
 }
 
 @keyframes spin {
@@ -256,11 +210,5 @@ button.removed {
 }
 
 .loading-overlay p {
-    color: var(--cyan);
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    color: var(--stark-gold);
 }
