@@ -1,0 +1,189 @@
+:root {
+    --bg-dark: #09090b; /* Zinc 950 */
+    --panel-bg: #18181b; /* Zinc 900 */
+    --border-color: #27272a; /* Zinc 800 */
+    --accent: #05d9e8; /* Cyan */
+    --accent-hover: #4deeea;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-math: #6ee7b7; /* Emerald for math output */
+    --error: #ef4444; /* Red 500 */
+    
+    --font-ui: 'Inter', sans-serif;
+    --font-math: 'Fira Code', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-ui);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+header {
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: var(--accent);
+    letter-spacing: -1px;
+    margin-bottom: 5px;
+}
+
+header p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.calculator-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+input[type="text"] {
+    width: 100%;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-math);
+    font-size: 1.2rem;
+    padding: 15px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(5, 217, 232, 0.2);
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.btn {
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-ui);
+    border: 1px solid transparent;
+}
+
+.btn.primary {
+    background: var(--accent);
+    color: #000;
+}
+
+.btn.primary:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 15px rgba(5, 217, 232, 0.4);
+}
+
+.btn.secondary {
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.btn.secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.result-display {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.result-label {
+    background: #27272a;
+    padding: 8px 15px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.result-box {
+    padding: 20px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    font-family: var(--font-math);
+    font-size: 1.3rem;
+    color: var(--text-math);
+    word-break: break-all;
+}
+
+.placeholder {
+    color: #3f3f46; /* Zinc 700 */
+    font-style: italic;
+    font-size: 1rem;
+}
+
+.error-message {
+    color: var(--error);
+    font-size: 0.9rem;
+    padding: 10px;
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 4px solid var(--error);
+    border-radius: 4px;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .actions {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Pulse | Live Visualizer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="background-glow"></div>
+    
+    <div class="ui-container" id="ui-panel">
+        <header>
+            <h1>Neon Pulse</h1>
+            <p>Live Audio Visualizer</p>
+        </header>
+
+        <div class="controls">
+            <button id="capture-btn" class="custom-capture-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12h4l3-9 5 18 3-9h5"></path>
+                </svg>
+                Connect to Tab Audio
+            </button>
+            <div class="instruction-text">
+                ⚠️ IMPORTANT: When prompted, select the tab playing music (e.g., Spotify/YouTube) and ensure <strong>"Share tab audio"</strong> is turned ON.
+            </div>
+            
+            <div id="status-message" class="status-message"></div>
+        </div>
+
+        <div class="settings">
+            <div class="toggle-container">
+                <span>Hide UI while playing</span>
+                <label class="switch">
+                    <input type="checkbox" id="auto-hide-ui" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <button id="stop-btn" class="btn secondary hidden">Stop Visualizer</button>
+        </div>
+    </div>
+
+    <!-- Canvas for rendering the visualizer -->
+    <canvas id="visualizer-canvas"></canvas>
+
+    <script src="script.js"></script>
+</body>
+</html>

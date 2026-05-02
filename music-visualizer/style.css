@@ -1,0 +1,218 @@
+:root {
+    --bg-color: #0a0a0f;
+    --panel-bg: rgba(20, 20, 30, 0.6);
+    --panel-border: rgba(255, 255, 255, 0.1);
+    --accent: #05d9e8;
+    --accent-hover: #4deeea;
+    --accent-glow: rgba(5, 217, 232, 0.5);
+    --danger: #ff2a6d;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --font-family: 'Outfit', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    overflow: hidden; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+#background-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50vw;
+    height: 50vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 42, 109, 0.3) 0%, transparent 70%);
+    opacity: 0.1;
+    z-index: 0;
+    transition: opacity 0.1s ease, transform 0.1s ease;
+    pointer-events: none;
+}
+
+#visualizer-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.ui-container {
+    position: relative;
+    z-index: 10;
+    background: var(--panel-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--panel-border);
+    border-radius: 24px;
+    padding: 40px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.ui-container.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+}
+
+header {
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff, var(--text-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+header p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.custom-capture-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--accent), #01859c);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px var(--accent-glow);
+}
+
+.custom-capture-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--accent-glow);
+    filter: brightness(1.1);
+}
+
+.instruction-text {
+    background: rgba(255, 42, 109, 0.1);
+    border-left: 4px solid var(--danger);
+    padding: 12px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem;
+    color: #ffd1df;
+    line-height: 1.4;
+}
+
+.status-message {
+    font-size: 0.9rem;
+    font-weight: 500;
+    height: 20px;
+    text-align: center;
+}
+
+.status-message.error { color: var(--danger); }
+.status-message.success { color: var(--accent); }
+
+.settings {
+    border-top: 1px solid var(--panel-border);
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background-color: var(--text-secondary);
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider:before {
+    transform: translateX(20px);
+    background-color: white;
+}
+
+.btn.secondary {
+    background: rgba(255, 42, 109, 0.2);
+    color: var(--danger);
+    border: 1px solid rgba(255, 42, 109, 0.5);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn.secondary:hover {
+    background: var(--danger);
+    color: white;
+}
+
+.hidden { display: none !important; }

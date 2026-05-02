@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculus Solver AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Nerdamer Math Engine CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>∑ Calculus Solver</h1>
+            <p>Symbolic Math Engine</p>
+        </header>
+
+        <div class="calculator-panel">
+            <div class="input-group">
+                <label for="math-input">Enter Mathematical Expression: f(x)</label>
+                <input type="text" id="math-input" placeholder="e.g. x^2 + sin(x) / 2" autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="actions">
+                <button id="btn-simplify" class="btn primary">Simplify</button>
+                <button id="btn-derive" class="btn secondary">d/dx (Derivative)</button>
+                <button id="btn-integrate" class="btn secondary">∫ dx (Integral)</button>
+            </div>
+
+            <div class="result-display">
+                <div class="result-label">Output</div>
+                <div id="result-box" class="result-box">
+                    <span class="placeholder">Awaiting input...</span>
+                </div>
+            </div>
+            
+            <div id="error-message" class="error-message hidden"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

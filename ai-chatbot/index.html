@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DezineeeBot AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="avatar-header">🤖</div>
+            <div class="header-info">
+                <h1>DezineeeBot</h1>
+                <p>Always online</p>
+            </div>
+        </header>
+
+        <!-- Chat History -->
+        <main class="chat-history" id="chat-history">
+            <!-- Initial AI Greeting -->
+            <div class="message ai-message">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    <p>Hello! I am DezineeeBot, your personal AI assistant. How can I help you today?</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Typing Indicator (Hidden by default) -->
+        <div id="typing-indicator" class="typing-indicator hidden">
+            <div class="avatar">🤖</div>
+            <div class="dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <footer class="chat-input-area">
+            <form id="chat-form">
+                <textarea id="user-input" placeholder="Message DezineeeBot..." rows="1"></textarea>
+                <button type="submit" id="send-btn" disabled>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </form>
+            <div class="footer-note">DezineeeBot can make mistakes. Consider verifying important information.</div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

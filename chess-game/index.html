@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Chess</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-wrapper">
+        <header>
+            <h1>Browser Chess</h1>
+            <div class="turn-indicator" id="turn-indicator">White's Turn</div>
+        </header>
+        
+        <div class="board-container">
+            <!-- Coordinates -->
+            <div class="coords-top">
+                <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span>
+            </div>
+            <div class="coords-left">
+                <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+            </div>
+            
+            <!-- The actual chess board generated via JS -->
+            <div id="chessboard" class="chessboard"></div>
+        </div>
+
+        <div id="game-over-modal" class="modal hidden">
+            <h2 id="winner-text">White Wins!</h2>
+            <button id="restart-btn" class="btn">Play Again</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

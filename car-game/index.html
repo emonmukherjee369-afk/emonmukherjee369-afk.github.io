@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Car Racing</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <!-- The Game Canvas -->
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+        <!-- UI Overlays -->
+        <div id="score-display">SCORE: <span id="score">0</span></div>
+
+        <div id="start-screen" class="overlay">
+            <h1>NEON RACER</h1>
+            <p>Use LEFT and RIGHT Arrow Keys to Steer.</p>
+            <p>Dodge the incoming traffic!</p>
+            <button id="start-btn" class="btn">START GAME</button>
+        </div>
+
+        <div id="game-over-screen" class="overlay hidden">
+            <h1>CRASHED!</h1>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <button id="restart-btn" class="btn">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
