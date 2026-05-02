@@ -30,6 +30,23 @@ document.addEventListener('keyup', (e) => {
     else if (e.key === 'ArrowLeft') leftPressed = false;
 });
 
+// Mobile Touch Controls
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touchX = e.touches[0].clientX;
+    if (touchX > window.innerWidth / 2) {
+        rightPressed = true;
+    } else {
+        leftPressed = true;
+    }
+}, {passive: false});
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    rightPressed = false;
+    leftPressed = false;
+}, {passive: false});
+
 // Entities
 const player = {
     x: 175,

@@ -35,11 +35,23 @@ function showStatus(msg, isError = false) {
 captureBtn.addEventListener('click', async () => {
     try {
         // Request Display Media (Screen/Tab sharing)
-        // Video must be true for most browsers to allow tab sharing, we just ignore the video
-        mediaStream = await navigator.mediaDevices.getDisplayMedia({
-            video: { displaySurface: "browser" }, 
-            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
-        });
+        let stream;
+        try {
+            if (navigator.mediaDevices.getDisplayMedia) {
+                stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { displaySurface: "browser" }, 
+                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
+                });
+            } else {
+                throw new Error("getDisplayMedia not supported");
+            }
+        } catch(e) {
+            // Fallback to Microphone for mobile or if screen sharing fails
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } 
+            });
+        }
+        mediaStream = stream;
 
         // Check if audio track exists
         const audioTracks = mediaStream.getAudioTracks();
