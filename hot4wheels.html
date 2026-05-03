@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Hot4Wheels — India's Ultimate Car Directory</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --neon:#00f5ff;--neon2:#ff006e;--neon3:#adff2f;--gold:#ffd700;--purple:#b44fff;--orange:#ff6b00;
+  --bg:#04060f;--bg2:#07091a;--bg3:#0b0e20;--card:#080b18;
+  --text:#e8eaf6;--muted:#546e7a;--border:rgba(0,245,255,0.1);
+  --font-h:'Orbitron',sans-serif;--font-b:'Rajdhani',sans-serif;--font-m:'Share Tech Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);overflow-x:hidden;cursor:none}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:linear-gradient(var(--neon),var(--neon2));border-radius:2px}
+
+/* CUSTOM CURSOR */
+#cur{position:fixed;width:20px;height:20px;border:1.5px solid var(--neon);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s;mix-blend-mode:screen}
+#cur2{position:fixed;width:4px;height:4px;background:var(--neon);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+body:has(button:hover) #cur,body:has(a:hover) #cur,body:has(.car-card:hover) #cur{width:40px;height:40px;border-color:var(--neon2)}
+
+/* LOADER */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;transition:opacity .8s ease}
+#loader.out{opacity:0;pointer-events:none}
+.ld-logo-wrap{text-align:center}
+.ld-fire{font-size:4rem;animation:firePulse 0.6s ease-in-out infinite alternate}
+@keyframes firePulse{from{transform:scale(1) rotate(-5deg)}to{transform:scale(1.15) rotate(5deg)}}
+.ld-name{font-family:var(--font-h);font-size:3.5rem;font-weight:900;letter-spacing:3px;background:linear-gradient(135deg,var(--orange),var(--gold),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none}
+.ld-tag{font-family:var(--font-m);font-size:.6rem;color:var(--muted);letter-spacing:5px;margin-top:.3rem}
+.ld-bar-wrap{width:320px;height:2px;background:rgba(255,255,255,0.05);position:relative;overflow:hidden}
+.ld-bar{height:100%;background:linear-gradient(90deg,var(--orange),var(--gold),var(--neon));animation:ldBar 2.4s ease forwards}
+@keyframes ldBar{0%{width:0}100%{width:100%}}
+.ld-msg{font-family:var(--font-m);color:var(--muted);font-size:.62rem;letter-spacing:3px}
+.ld-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--neon);margin:0 3px;animation:dotBounce 1s ease infinite}
+.ld-dots span:nth-child(2){animation-delay:.15s}.ld-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dotBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px);background:var(--neon2)}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:700;padding:.8rem 3rem;display:flex;align-items:center;justify-content:space-between;background:rgba(4,6,15,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:all .3s}
+nav.scrolled{padding:.6rem 3rem;box-shadow:0 4px 30px rgba(0,0,0,0.5)}
+.nav-brand{display:flex;align-items:center;gap:.6rem;text-decoration:none}
+.nav-fire{font-size:1.5rem}
+.nav-name{font-family:var(--font-h);font-size:1.4rem;font-weight:900;background:linear-gradient(135deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px}
+.nav-links{display:flex;gap:2rem;list-style:none;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-family:var(--font-m);font-size:.62rem;letter-spacing:2px;transition:color .3s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--orange);transform:scaleX(0);transition:transform .3s;transform-origin:left}
+.nav-links a:hover{color:var(--orange)}
+.nav-links a:hover::after{transform:scaleX(1)}
+.nav-search-btn{padding:.45rem 1.2rem;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font-m);font-size:.6rem;letter-spacing:2px;cursor:pointer;transition:all .3s}
+.nav-search-btn:hover{border-color:var(--neon);color:var(--neon)}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:8rem 2rem 5rem}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:60px 60px;animation:gridSlide 25s linear infinite}
+@keyframes gridSlide{to{transform:translateY(60px)}}
+.hero-radial{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:900px;height:600px;background:radial-gradient(ellipse,rgba(255,107,0,0.06) 0%,rgba(0,245,255,0.03) 40%,transparent 70%);pointer-events:none}
+.hero-radial2{position:absolute;top:70%;right:5%;width:500px;height:400px;background:radial-gradient(ellipse,rgba(255,0,110,0.04),transparent 70%);pointer-events:none}
+.h-tag{font-family:var(--font-m);color:var(--orange);font-size:.65rem;letter-spacing:6px;opacity:0;animation:fadeUp .8s .2s ease forwards}
+.h-logo-big{display:flex;align-items:center;justify-content:center;gap:1rem;margin:.8rem 0;opacity:0;animation:fadeUp .8s .35s ease forwards}
+.h-fire-big{font-size:5rem;animation:firePulse2 1.5s ease-in-out infinite alternate}
+@keyframes firePulse2{from{transform:scale(1) rotate(-3deg);filter:drop-shadow(0 0 10px orange)}to{transform:scale(1.1) rotate(3deg);filter:drop-shadow(0 0 25px orange)}}
+.h-title-main{font-family:var(--font-h);font-size:clamp(3.5rem,9vw,7.5rem);font-weight:900;letter-spacing:2px;line-height:1;background:linear-gradient(135deg,#ff6b00 0%,#ffd700 35%,#ff006e 65%,#00f5ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.h-sub{font-family:var(--font-m);color:var(--muted);font-size:.65rem;letter-spacing:4px;margin-top:.8rem;opacity:0;animation:fadeUp .8s .5s ease forwards}
+.h-stats{display:flex;gap:4rem;margin-top:3rem;opacity:0;animation:fadeUp .8s .65s ease forwards}
+.hs{text-align:center}
+.hs-n{font-family:var(--font-h);font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1}
+.hs-l{font-family:var(--font-m);font-size:.55rem;color:var(--muted);letter-spacing:3px;margin-top:.3rem}
+.h-btns{display:flex;gap:1rem;margin-top:2.5rem;opacity:0;animation:fadeUp .8s .8s ease forwards}
+.btn-hot{padding:.9rem 2.8rem;background:linear-gradient(135deg,var(--orange),var(--neon2));color:#fff;font-family:var(--font-h);font-size:.85rem;font-weight:700;letter-spacing:3px;border:none;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);transition:all .35s;position:relative;overflow:hidden}
+.btn-hot::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent);opacity:0;transition:opacity .3s}
+.btn-hot:hover::before{opacity:1}
+.btn-hot:hover{transform:translateY(-3px);box-shadow:0 15px 40px rgba(255,107,0,0.4)}
+.btn-outline-hot{padding:.9rem 2.8rem;background:transparent;color:var(--neon);font-family:var(--font-h);font-size:.85rem;font-weight:700;letter-spacing:3px;border:1px solid rgba(0,245,255,0.4);cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);transition:all .35s}
+.btn-outline-hot:hover{background:rgba(0,245,255,0.08);border-color:var(--neon);transform:translateY(-3px)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* SCROLL INDICATOR */
+.scroll-ind{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:0;animation:fadeUp .8s 1.2s ease forwards}
+.scroll-line{width:1px;height:40px;background:linear-gradient(var(--orange),transparent);animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{opacity:0.3;height:30px}50%{opacity:1;height:50px}}
+.scroll-txt{font-family:var(--font-m);font-size:.5rem;color:var(--muted);letter-spacing:3px}
+
+/* TICKER */
+.ticker-wrap{background:linear-gradient(90deg,var(--orange),var(--neon2),var(--orange));padding:.38rem 0;overflow:hidden;white-space:nowrap;position:relative}
+.ticker-inner{display:inline-flex;animation:tickerMove 300s linear infinite}
+.ticker-inner:hover{animation-play-state:paused}
+.t-item{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--font-m);font-size:.65rem;color:#fff;margin:0 2rem;letter-spacing:1.5px;white-space:nowrap}
+.t-dot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.5)}
+@keyframes tickerMove{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* SEARCH OVERLAY */
+#search-overlay{position:fixed;inset:0;background:rgba(4,6,15,0.97);z-index:800;display:none;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(20px)}
+#search-overlay.open{display:flex}
+.search-box{width:90%;max-width:700px;position:relative}
+.search-big-input{width:100%;background:transparent;border:none;border-bottom:2px solid var(--orange);color:var(--text);font-family:var(--font-h);font-size:clamp(1.5rem,4vw,2.5rem);font-weight:400;letter-spacing:3px;padding:1rem 3rem 1rem 0;outline:none;caret-color:var(--orange)}
+.search-big-input::placeholder{color:var(--muted)}
+.search-close{position:absolute;right:0;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--muted);font-size:1.5rem;cursor:pointer;transition:color .3s}
+.search-close:hover{color:var(--neon2)}
+.search-results-count{font-family:var(--font-m);color:var(--muted);font-size:.65rem;letter-spacing:3px;margin-top:1.5rem;text-align:center}
+.search-quick{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.5rem;justify-content:center}
+.search-quick span{padding:.3rem .9rem;border:1px solid var(--border);font-family:var(--font-m);font-size:.6rem;color:var(--muted);cursor:pointer;transition:all .3s;letter-spacing:1px}
+.search-quick span:hover{border-color:var(--orange);color:var(--orange)}
+
+/* SECTION COMMON */
+section{padding:6rem 2rem}
+.container{max-width:1440px;margin:0 auto}
+.s-label{font-family:var(--font-m);font-size:.6rem;color:var(--orange);letter-spacing:5px;margin-bottom:.5rem}
+.s-title{font-family:var(--font-h);font-size:clamp(2.5rem,5vw,4.5rem);font-weight:700;letter-spacing:3px;line-height:.95;margin-bottom:.5rem}
+.s-title em{font-style:normal;background:linear-gradient(135deg,var(--orange),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.s-title span{color:var(--neon2)}
+
+/* SEGMENT TABS */
+.seg-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin:2rem 0 1.5rem;overflow-x:auto;scrollbar-width:none}
+.seg-tabs::-webkit-scrollbar{display:none}
+.seg-tab{padding:.7rem 1.8rem;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font-m);font-size:.6rem;letter-spacing:2px;cursor:pointer;transition:all .3s;white-space:nowrap;text-transform:uppercase}
+.seg-tab.active,.seg-tab:hover{color:var(--orange);border-bottom-color:var(--orange)}
+.seg-tab.active{background:rgba(255,107,0,0.05)}
+
+/* FILTERS BAR */
+.filters-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center}
+.fb{padding:.38rem 1.1rem;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font-m);font-size:.58rem;letter-spacing:1.5px;cursor:pointer;transition:all .25s;text-transform:uppercase;white-space:nowrap}
+.fb.active,.fb:hover{border-color:var(--orange);color:var(--orange);background:rgba(255,107,0,0.06)}
+.inline-search{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.4rem 1rem;font-family:var(--font-m);font-size:.65rem;letter-spacing:1px;outline:none;width:240px;transition:border-color .3s;margin-left:auto}
+.inline-search:focus{border-color:var(--orange)}
+.inline-search::placeholder{color:var(--muted)}
+
+/* RESULTS COUNT */
+.results-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+.results-count{font-family:var(--font-m);font-size:.65rem;color:var(--muted);letter-spacing:2px}
+.results-count span{color:var(--orange)}
+.sort-select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.35rem .8rem;font-family:var(--font-m);font-size:.6rem;cursor:pointer;outline:none}
+
+/* CARS GRID */
+.cars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+
+/* CAR CARD */
+.car-card{background:var(--card);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .35s cubic-bezier(.25,.46,.45,.94),border-color .35s,box-shadow .35s;position:relative}
+.car-card:hover{transform:translateY(-8px);border-color:rgba(255,107,0,0.45);box-shadow:0 25px 60px rgba(0,0,0,0.6),0 0 40px rgba(255,107,0,0.08)}
+.car-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--orange),transparent);opacity:0;transition:opacity .35s}
+.car-card:hover::before{opacity:1}
+
+/* CARD IMAGE */
+.card-img-wrap{height:200px;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,107,0,0.04) 0%,rgba(0,0,0,0.3) 100%)}
+.card-img{width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .5s cubic-bezier(.25,.46,.45,.94),filter .5s;filter:brightness(0.88) saturate(1.1)}
+.car-card:hover .card-img{transform:scale(1.08);filter:brightness(1) saturate(1.2)}
+.card-img-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(4,6,15,0.85) 100%);pointer-events:none}
+.card-img-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;background:linear-gradient(135deg,rgba(255,107,0,0.1),rgba(0,245,255,0.05))}
+/* Badges */
+.card-badges{position:absolute;top:.8rem;left:.8rem;display:flex;flex-direction:column;gap:.3rem;z-index:2}
+.cbadge{font-family:var(--font-m);font-size:.5rem;letter-spacing:1.5px;padding:.2rem .6rem;font-weight:700}
+.badge-popular{background:var(--neon2);color:#fff}
+.badge-new{background:var(--neon3);color:#000}
+.badge-electric{background:var(--neon);color:#000}
+.badge-luxury{background:linear-gradient(135deg,var(--gold),#cc9900);color:#000}
+.badge-ultra{background:linear-gradient(135deg,#cc9900,var(--orange));color:#fff}
+/* Segment label on image */
+.card-seg{position:absolute;bottom:.8rem;right:.8rem;font-family:var(--font-m);font-size:.5rem;color:rgba(255,255,255,0.6);letter-spacing:2px;background:rgba(0,0,0,0.5);padding:.2rem .6rem;z-index:2}
+
+/* CARD BODY */
+.card-body{padding:1.2rem 1.3rem}
+.card-brand{font-family:var(--font-m);font-size:.55rem;color:var(--orange);letter-spacing:3px;margin-bottom:.2rem}
+.card-name{font-family:var(--font-h);font-size:1.5rem;font-weight:700;letter-spacing:2px;line-height:1.1;margin-bottom:.4rem}
+.card-price{font-family:var(--font-h);font-size:1.2rem;font-weight:700;color:var(--gold)}
+.card-specs{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin:.9rem 0;padding:.8rem 0;border-top:1px solid var(--border)}
+.cs{text-align:center}
+.cs-v{font-family:var(--font-m);font-size:.65rem;color:var(--neon)}
+.cs-k{font-size:.5rem;color:var(--muted);letter-spacing:1.5px;margin-top:.12rem;text-transform:uppercase}
+.card-btns{display:flex;gap:.5rem}
+.cbt{flex:1;padding:.5rem .3rem;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font-m);font-size:.55rem;letter-spacing:1px;cursor:pointer;transition:all .25s;text-transform:uppercase}
+.cbt:hover{border-color:var(--orange);color:var(--orange);background:rgba(255,107,0,0.06)}
+.cbt.cmp-on{border-color:var(--neon2);color:var(--neon2);background:rgba(255,0,110,0.08)}
+
+/* LUXURY SECTION special styling */
+#luxury{background:linear-gradient(180deg,var(--bg) 0%,rgba(180,79,255,0.03) 50%,var(--bg) 100%)}
+.luxury-header{display:flex;align-items:flex-end;gap:2rem;margin-bottom:2rem}
+.luxury-badge-big{background:linear-gradient(135deg,var(--gold),#cc9900);color:#000;font-family:var(--font-m);font-size:.6rem;letter-spacing:3px;padding:.4rem 1.2rem}
+
+/* UPCOMING SECTION */
+.upcoming-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem}
+.up-card{background:var(--card);border:1px solid rgba(180,79,255,0.2);overflow:hidden;transition:all .35s;position:relative}
+.up-card:hover{border-color:var(--purple);transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,0.5),0 0 30px rgba(180,79,255,0.1)}
+.up-card::before{content:'UPCOMING';position:absolute;top:1rem;right:-2rem;background:var(--purple);color:#fff;font-family:var(--font-m);font-size:.5rem;letter-spacing:2px;padding:.25rem 3rem;transform:rotate(35deg);z-index:3}
+.up-img-wrap{height:180px;overflow:hidden;position:relative;background:linear-gradient(135deg,rgba(180,79,255,0.08),rgba(0,0,0,0.3))}
+.up-img{width:100%;height:100%;object-fit:cover;filter:brightness(0.8) saturate(0.9);transition:all .4s}
+.up-card:hover .up-img{transform:scale(1.05);filter:brightness(0.9) saturate(1)}
+.up-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(4,6,15,0.9) 100%)}
+.up-eta{position:absolute;bottom:1rem;left:1rem;font-family:var(--font-m);font-size:.55rem;color:var(--purple);letter-spacing:2px}
+.up-body{padding:1.2rem}
+.up-brand{font-family:var(--font-m);font-size:.55rem;color:var(--purple);letter-spacing:3px}
+.up-name{font-family:var(--font-h);font-size:1.5rem;font-weight:700;letter-spacing:2px;margin:.2rem 0}
+.up-price{font-family:var(--font-m);color:var(--gold);font-size:.8rem}
+.up-features{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.8rem}
+.up-feat{padding:.2rem .6rem;border:1px solid rgba(180,79,255,0.3);font-family:var(--font-m);font-size:.52rem;color:var(--purple);letter-spacing:1px}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:900;display:none;align-items:center;justify-content:center;backdrop-filter:blur(16px);padding:1rem}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid rgba(255,107,0,0.25);width:100%;max-width:980px;max-height:94vh;overflow-y:auto;position:relative;animation:mIn .35s cubic-bezier(.25,.46,.45,.94)}
+@keyframes mIn{from{opacity:0;transform:scale(.93) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-close{position:absolute;top:1rem;right:1rem;z-index:10;width:38px;height:38px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .3s}
+.modal-close:hover{border-color:var(--neon2);color:var(--neon2);background:rgba(255,0,110,0.1)}
+/* MODAL TABS */
+.m-tabs{display:flex;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.3)}
+.m-tab{flex:1;padding:1rem;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font-m);font-size:.58rem;letter-spacing:2px;cursor:pointer;transition:all .3s;text-align:center;text-transform:uppercase}
+.m-tab.active{color:var(--orange);border-bottom-color:var(--orange);background:rgba(255,107,0,0.04)}
+.m-tab:hover{color:var(--orange)}
+.m-view{display:none;padding:1.5rem}
+.m-view.active{display:block}
+
+/* MODAL HERO SECTION */
+.m-hero{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;padding:1.5rem;border-bottom:1px solid var(--border)}
+@media(max-width:640px){.m-hero{grid-template-columns:1fr}}
+
+/* 360 STAGE */
+.stage{background:rgba(0,0,0,0.5);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;position:relative;overflow:hidden;min-height:240px}
+.stage-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sring{position:absolute;border-radius:50%;border:1px solid rgba(255,107,0,0.06);animation:spinRing 12s linear infinite}
+.sring:nth-child(2){animation-duration:20s;animation-direction:reverse}
+.sring:nth-child(3){animation-duration:30s}
+@keyframes spinRing{to{transform:rotate(360deg)}}
+.stage-img-wrap{width:100%;max-height:200px;display:flex;align-items:center;justify-content:center;cursor:grab;position:relative;overflow:hidden}
+.stage-img-wrap:active{cursor:grabbing}
+.stage-img{max-width:100%;max-height:200px;object-fit:contain;transition:transform .1s linear;filter:drop-shadow(0 10px 30px rgba(255,107,0,0.3))}
+.stage-angle-badge{font-family:var(--font-m);font-size:.6rem;color:var(--orange);letter-spacing:3px;margin-top:.8rem}
+.stage-controls{display:flex;gap:.4rem;margin-top:.8rem;flex-wrap:wrap;justify-content:center}
+.sc{padding:.38rem .9rem;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font-m);font-size:.55rem;cursor:pointer;transition:all .3s;letter-spacing:1px}
+.sc:hover{border-color:var(--orange);color:var(--orange)}
+.sc.spinning{border-color:var(--neon);color:var(--neon)}
+.stage-hint{font-family:var(--font-m);font-size:.52rem;color:rgba(84,110,122,0.6);margin-top:.4rem;letter-spacing:2px}
+
+/* MODAL INFO */
+.m-info{padding:.3rem 0}
+.mi-brand{font-family:var(--font-m);color:var(--orange);font-size:.62rem;letter-spacing:4px}
+.mi-name{font-family:var(--font-h);font-size:2.5rem;font-weight:700;letter-spacing:2px;line-height:1;margin:.3rem 0}
+.mi-price{font-family:var(--font-h);font-size:1.6rem;font-weight:700;color:var(--gold)}
+.mi-exs{font-family:var(--font-m);font-size:.55rem;color:var(--muted);letter-spacing:2px}
+.mi-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.8rem}
+.mi-tag{padding:.25rem .8rem;font-family:var(--font-m);font-size:.55rem;letter-spacing:1.5px;border:1px solid}
+.tag-petrol{border-color:rgba(255,140,0,0.5);color:#ff8c00}
+.tag-diesel{border-color:rgba(0,245,255,0.5);color:var(--neon)}
+.tag-electric{border-color:rgba(173,255,47,0.5);color:var(--neon3)}
+.tag-hybrid{border-color:rgba(180,79,255,0.5);color:var(--purple)}
+.tag-trans{border-color:var(--border);color:var(--muted)}
+.tag-seg{border-color:rgba(255,107,0,0.3);color:var(--orange)}
+.m-mini-specs{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1rem}
+.ms-box{background:var(--bg3);padding:.7rem .9rem;border-left:2px solid var(--orange)}
+.ms-l{font-family:var(--font-m);font-size:.52rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.ms-v{font-family:var(--font-m);font-size:.85rem;color:var(--text);margin-top:.2rem}
+
+/* COLOR PICKER */
+.color-wrap{margin-top:1.2rem}
+.color-title{font-family:var(--font-m);font-size:.55rem;color:var(--muted);letter-spacing:3px;margin-bottom:.5rem}
+.color-dots{display:flex;gap:.6rem;flex-wrap:wrap}
+.cdot{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .3s;position:relative}
+.cdot:hover,.cdot.active{border-color:rgba(255,255,255,0.8);transform:scale(1.2)}
+.cdot.active::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1px solid rgba(255,255,255,0.3)}
+.color-name-display{font-family:var(--font-m);font-size:.6rem;color:var(--orange);margin-top:.4rem;letter-spacing:2px;min-height:1em}
+
+/* FULL SPECS */
+.specs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:.7rem}
+.spec-box{background:var(--bg3);padding:.8rem 1rem;border-left:2px solid var(--orange);position:relative;overflow:hidden}
+.spec-box::after{content:'';position:absolute;top:0;right:0;width:20px;height:1px;background:var(--orange);opacity:.3}
+.sb-l{font-family:var(--font-m);font-size:.52rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.sb-v{font-family:var(--font-m);font-size:.9rem;color:var(--text);margin-top:.25rem}
+
+/* FEATURES */
+.feat-grid{display:flex;flex-wrap:wrap;gap:.4rem}
+.feat-chip{padding:.3rem .9rem;font-family:var(--font-m);font-size:.58rem;letter-spacing:1px;border:1px solid;transition:all .3s;cursor:default}
+.feat-chip.hi{border-color:rgba(173,255,47,0.4);color:var(--neon3);background:rgba(173,255,47,0.04)}
+.feat-chip.std{border-color:var(--border);color:var(--muted)}
+.feat-chip:hover{transform:translateY(-1px)}
+
+/* INTERIOR */
+.int-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+.int-card{background:var(--bg3);border:1px solid var(--border);padding:.8rem;cursor:pointer;transition:all .3s;position:relative}
+.int-card:hover,.int-card.sel{border-color:var(--orange);background:rgba(255,107,0,0.04)}
+.int-card.sel::after{content:'✓';position:absolute;top:.5rem;right:.5rem;background:var(--orange);color:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;line-height:18px;text-align:center}
+.int-img{width:100%;height:120px;object-fit:cover;margin-bottom:.6rem;border:1px solid var(--border);filter:brightness(.85)}
+.int-name{font-family:var(--font-m);font-size:.65rem;color:var(--text);letter-spacing:1.5px}
+.int-desc{font-size:.65rem;color:var(--muted);margin-top:.2rem}
+
+/* COMPARE */
+.compare-header{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;margin:1.5rem 0}
+.cmp-budget{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.45rem 1rem;font-family:var(--font-m);font-size:.62rem;cursor:pointer;outline:none;transition:border-color .3s}
+.cmp-budget:focus{border-color:var(--orange)}
+.cmp-label{font-family:var(--font-m);font-size:.62rem;color:var(--muted);letter-spacing:2px}
+.cmp-list{display:flex;flex-wrap:wrap;gap:.4rem;max-height:150px;overflow-y:auto;padding:.5rem;border:1px solid var(--border);margin-bottom:1.5rem;scrollbar-width:thin;scrollbar-color:var(--orange) transparent}
+.cc-btn{padding:.35rem .9rem;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font-m);font-size:.55rem;cursor:pointer;transition:all .25s;white-space:nowrap;letter-spacing:.5px}
+.cc-btn:hover,.cc-btn.sel{border-color:var(--orange);color:var(--orange);background:rgba(255,107,0,0.06)}
+.cmp-arena{display:grid;grid-template-columns:1fr 60px 1fr;gap:1rem;align-items:start}
+.cslot{background:var(--card);border:1px solid var(--border);min-height:260px;display:flex;align-items:center;justify-content:center;padding:1.5rem;transition:border-color .3s;flex-direction:column}
+.cslot.filled{justify-content:flex-start;align-items:flex-start}
+.cslot-empty{font-family:var(--font-m);font-size:.6rem;color:var(--muted);letter-spacing:2px;text-align:center}
+.cvs{font-family:var(--font-h);font-size:3rem;color:var(--neon2);text-align:center;align-self:center;text-shadow:0 0 20px var(--neon2)}
+.cslot-img{width:100%;height:140px;object-fit:cover;margin-bottom:.8rem}
+.cslot-name{font-family:var(--font-h);font-size:1.3rem;font-weight:700;letter-spacing:2px}
+.cslot-price{font-family:var(--font-h);color:var(--gold);font-size:1.1rem}
+.ctable{width:100%;border-collapse:collapse;margin-top:1.5rem;display:none;white-space:nowrap}
+.ctable.vis{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ctable th{background:rgba(255,107,0,0.06);font-family:var(--font-m);font-size:.6rem;color:var(--orange);padding:.85rem 1rem;text-align:left;border-bottom:1px solid var(--border);letter-spacing:2px}
+.ctable td{padding:.85rem 1rem;border-bottom:1px solid rgba(255,255,255,0.03);font-family:var(--font-m);font-size:.7rem}
+.ctable tr:hover td{background:rgba(255,107,0,0.02)}
+.td-win{color:var(--neon3)}
+.td-win::before{content:'▲ ';font-size:.5rem;vertical-align:middle}
+.td-lose{color:var(--muted)}
+.radar-box{background:var(--card);border:1px solid var(--border);padding:1.5rem;margin-top:1.5rem;display:none}
+.radar-box.vis{display:block}
+.radar-title{font-family:var(--font-h);font-size:1.1rem;font-weight:700;letter-spacing:3px;margin-bottom:1.2rem}
+.radar-title em{font-style:normal;color:var(--neon)}
+
+/* ANALYTICS */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:2rem}
+.chart-box{background:var(--card);border:1px solid var(--border);padding:1.5rem}
+.chart-box-title{font-family:var(--font-h);font-size:1.1rem;font-weight:700;letter-spacing:3px;margin-bottom:1.2rem}
+.chart-box-title em{font-style:normal;color:var(--orange)}
+
+/* PRICE CARDS */
+.price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin:2rem 0}
+.pc{background:var(--card);border:1px solid var(--border);padding:1.5rem;text-align:center;cursor:pointer;transition:all .35s;position:relative;overflow:hidden}
+.pc-glow{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--orange),transparent);transform:scaleX(0);transition:transform .4s}
+.pc:hover .pc-glow,.pc.act .pc-glow{transform:scaleX(1)}
+.pc:hover,.pc.act{border-color:rgba(255,107,0,0.35)}
+.pc-range{font-family:var(--font-h);font-size:1.6rem;font-weight:700;color:var(--gold)}
+.pc-label{font-family:var(--font-m);font-size:.55rem;color:var(--muted);letter-spacing:3px;margin-top:.3rem}
+.pc-count{font-family:var(--font-m);font-size:.65rem;color:var(--orange);margin-top:.5rem}
+
+/* FLOAT COMPARE BAR */
+.float-cmp{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(7,9,26,0.97);border:1px solid var(--neon2);padding:.85rem 2rem;z-index:500;display:flex;align-items:center;gap:1.5rem;backdrop-filter:blur(20px);transition:transform .4s cubic-bezier(.25,.46,.45,.94);white-space:nowrap;box-shadow:0 10px 40px rgba(255,0,110,0.2)}
+.float-cmp.show{transform:translateX(-50%) translateY(0)}
+.fcmp-txt{font-family:var(--font-m);font-size:.62rem;color:var(--text);letter-spacing:1.5px}
+.fcmp-go{padding:.45rem 1.3rem;background:var(--neon2);border:none;color:#fff;font-family:var(--font-m);font-size:.6rem;cursor:pointer;letter-spacing:2px;transition:all .3s}
+.fcmp-go:hover{background:#fff;color:var(--neon2)}
+.fcmp-clr{padding:.45rem 1rem;background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--muted);font-family:var(--font-m);font-size:.6rem;cursor:pointer;transition:all .3s}
+.fcmp-clr:hover{border-color:var(--neon2);color:var(--neon2)}
+
+/* FOOTER */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:4rem 2rem 3rem;text-align:center}
+.footer-brand{display:flex;align-items:center;justify-content:center;gap:.8rem;margin-bottom:.5rem}
+.footer-fire{font-size:3rem}
+.footer-name{font-family:var(--font-h);font-size:3rem;font-weight:900;background:linear-gradient(135deg,var(--orange),var(--gold),var(--neon2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:3px}
+.footer-tag{font-family:var(--font-m);color:var(--muted);font-size:.6rem;letter-spacing:4px;margin-top:.3rem}
+.footer-note{color:rgba(84,110,122,0.5);font-size:.62rem;margin-top:1.5rem;letter-spacing:1px;line-height:1.8}
+
+/* SCROLL REVEAL */
+.rev{opacity:0;transform:translateY(35px);transition:opacity .7s ease,transform .7s ease}
+.rev.in{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
+
+/* SECTION DIVIDER */
+.s-divider{display:flex;align-items:center;gap:1.5rem;margin:5rem 0 0;opacity:.15}
+.s-divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--orange),transparent)}
+.s-divider-icon{font-size:1.5rem}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  nav{padding:.7rem 1.5rem}
+  .nav-links{gap:1.2rem}
+  .h-stats{gap:2rem}
+  .h-btns{flex-direction:column;align-items:center}
+  section{padding:4rem 1.2rem}
+  .cmp-arena{grid-template-columns:1fr;gap:0}
+  .cvs{display:none}
+  .m-hero{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="ld-logo-wrap">
+    <div class="ld-fire">🔥</div>
+    <div class="ld-name">HOT4WHEELS</div>
+    <div class="ld-tag">INDIA'S ULTIMATE CAR DIRECTORY</div>
+  </div>
+  <div class="ld-bar-wrap"><div class="ld-bar"></div></div>
+  <div class="ld-msg" id="ld-msg">IGNITING THE ENGINE...</div>
+  <div class="ld-dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- CURSOR -->
+<div id="cur"></div><div id="cur2"></div>
+
+<!-- SEARCH OVERLAY -->
+<div id="search-overlay">
+  <div class="search-box">
+    <input class="search-big-input" id="search-big" type="text" placeholder="SEARCH ANY CAR..." autocomplete="off" oninput="bigSearch()">
+    <button class="search-close" onclick="closeSearch()">✕</button>
+    <div class="search-results-count" id="search-count">TYPE TO SEARCH ALL 100+ CARS</div>
+    <div class="search-quick">
+      <span onclick="quickSearch('BMW')">BMW</span>
+      <span onclick="quickSearch('Mercedes')">Mercedes</span>
+      <span onclick="quickSearch('Maruti')">Maruti</span>
+      <span onclick="quickSearch('Tata')">Tata</span>
+      <span onclick="quickSearch('Electric')">Electric</span>
+      <span onclick="quickSearch('SUV')">SUV</span>
+      <span onclick="quickSearch('Sedan')">Sedan</span>
+      <span onclick="quickSearch('Rolls')">Rolls-Royce</span>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a class="nav-brand" href="#hero"><span class="nav-fire">🔥</span><span class="nav-name">HOT4WHEELS</span></a>
+  <ul class="nav-links">
+    <li><a href="#browse">BROWSE</a></li>
+    <li><a href="#luxury">LUXURY</a></li>
+    <li><a href="#upcoming">UPCOMING</a></li>
+    <li><a href="#compare">COMPARE</a></li>
+    <li><a href="#analytics">STATS</a></li>
+    <li><button class="nav-search-btn" onclick="openSearch()">⌕ SEARCH</button></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-radial"></div>
+  <div class="hero-radial2"></div>
+  <p class="h-tag">// INDIA'S MOST COMPLETE CAR DIRECTORY — 2026</p>
+  <div class="h-logo-big">
+    <div class="h-fire-big">🔥</div>
+    <div class="h-title-main">HOT4WHEELS</div>
+    <div class="h-fire-big" style="transform:scaleX(-1)">🔥</div>
+  </div>
+  <p class="h-sub">REAL PHOTOS · 360° VIEWS · INTERIORS · SPECS · COMPARE · BUDGET FINDER</p>
+  <div class="h-stats">
+    <div class="hs"><div class="hs-n" id="cnt-total">0</div><div class="hs-l">CARS LISTED</div></div>
+    <div class="hs"><div class="hs-n" id="cnt-brands">0</div><div class="hs-l">BRANDS</div></div>
+    <div class="hs"><div class="hs-n" id="cnt-lux">0</div><div class="hs-l">LUXURY CARS</div></div>
+    <div class="hs"><div class="hs-n" id="cnt-ev">0</div><div class="hs-l">ELECTRIC</div></div>
+  </div>
+  <div class="h-btns">
+    <button class="btn-hot" onclick="scrollTo2('browse')">🚗 EXPLORE ALL CARS</button>
+    <button class="btn-outline-hot" onclick="openSearch()">⌕ SEARCH NOW</button>
+  </div>
+  <div class="scroll-ind"><div class="scroll-line"></div><div class="scroll-txt">SCROLL TO EXPLORE</div></div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap"><div class="ticker-inner" id="ticker"></div></div>
+
+<!-- BROWSE SECTION -->
+<section id="browse">
+  <div class="container">
+    <p class="s-label rev">// ALL CARS IN INDIA 2026</p>
+    <h2 class="s-title rev">BROWSE <em>EVERY</em> MODEL</h2>
+    <!-- Segment Tabs -->
+    <div class="seg-tabs rev" id="seg-tabs"></div>
+    <!-- Filters -->
+    <div class="filters-bar rev">
+      <div id="brand-filters" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+      <div id="fuel-filters" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+      <input class="inline-search" id="inline-search" type="text" placeholder="⌕ SEARCH CARS..." oninput="applyFilters()">
+    </div>
+    <div class="results-bar">
+      <div class="results-count">SHOWING <span id="shown-count">0</span> CARS</div>
+      <select class="sort-select" id="sort-select" onchange="applyFilters()">
+        <option value="default">SORT: DEFAULT</option>
+        <option value="price-asc">PRICE: LOW TO HIGH</option>
+        <option value="price-desc">PRICE: HIGH TO LOW</option>
+        <option value="power-desc">MOST POWERFUL</option>
+        <option value="name">NAME A–Z</option>
+      </select>
+    </div>
+    <div class="cars-grid" id="main-grid"></div>
+  </div>
+</section>
+
+<!-- LUXURY SECTION -->
+<section id="luxury" style="background:var(--bg2)">
+  <div class="container">
+    <p class="s-label rev">// PRESTIGE & PERFORMANCE</p>
+    <div class="luxury-header rev">
+      <div>
+        <h2 class="s-title">LUXURY <span>SEGMENT</span></h2>
+        <p style="color:var(--muted);font-family:var(--font-m);font-size:.62rem;letter-spacing:2px;margin-top:.5rem">BMW · MERCEDES-BENZ · AUDI · PORSCHE · LAND ROVER · LEXUS · JAGUAR · VOLVO · ROLLS-ROYCE · BENTLEY · FERRARI · LAMBORGHINI</p>
+      </div>
+      <div class="luxury-badge-big">PREMIUM SELECTION</div>
+    </div>
+    <!-- Luxury Segment Sub-tabs -->
+    <div class="seg-tabs" id="lux-tabs" style="margin-bottom:1.5rem"></div>
+    <div class="cars-grid" id="lux-grid"></div>
+  </div>
+</section>
+
+<!-- UPCOMING SECTION -->
+<section id="upcoming">
+  <div class="container">
+    <p class="s-label rev">// LAUNCHING SOON</p>
+    <h2 class="s-title rev">UPCOMING <em>CARS</em> 2026–27</h2>
+    <p class="rev" style="color:var(--muted);font-family:var(--font-m);font-size:.62rem;letter-spacing:2px;margin-bottom:2rem">EXPECTED DATES · PRICES · FEATURES — STAY AHEAD OF THE CURVE</p>
+    <div class="upcoming-grid" id="upcoming-grid"></div>
+  </div>
+</section>
+
+<!-- COMPARE SECTION -->
+<section id="compare" style="background:var(--bg2)">
+  <div class="container">
+    <p class="s-label rev">// HEAD-TO-HEAD BATTLE</p>
+    <h2 class="s-title rev">COMPARE <span>ANY TWO</span> CARS</h2>
+    <div class="compare-header rev">
+      <span class="cmp-label">FILTER BY BUDGET:</span>
+      <select class="cmp-budget" id="cmp-budget" onchange="loadCmpList()">
+        <option value="all">ALL BUDGETS</option>
+        <option value="0-10">UNDER ₹10 LAKH</option>
+        <option value="10-20">₹10–20 LAKH</option>
+        <option value="20-50">₹20–50 LAKH</option>
+        <option value="50-100">₹50L–1 CRORE</option>
+        <option value="100-9999">ABOVE ₹1 CRORE</option>
+      </select>
+    </div>
+    <div class="cmp-list rev" id="cmp-list"></div>
+    <div class="cmp-arena rev">
+      <div class="cslot" id="cslot-a"><div class="cslot-empty">SELECT CAR A<br><span style="font-size:.48rem;color:rgba(84,110,122,0.4)">CLICK A CAR ABOVE</span></div></div>
+      <div class="cvs">VS</div>
+      <div class="cslot" id="cslot-b"><div class="cslot-empty">SELECT CAR B<br><span style="font-size:.48rem;color:rgba(84,110,122,0.4)">CLICK A CAR ABOVE</span></div></div>
+    </div>
+    <table class="ctable" id="ctable">
+      <thead><tr><th>SPECIFICATION</th><th id="cth-a">CAR A</th><th id="cth-b">CAR B</th></tr></thead>
+      <tbody id="ctbody"></tbody>
+    </table>
+    <div class="radar-box" id="radar-box">
+      <div class="radar-title">PERFORMANCE <em>RADAR</em></div>
+      <div style="position:relative;height:320px"><canvas id="radarChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ANALYTICS -->
+<section id="analytics">
+  <div class="container">
+    <p class="s-label rev">// INDIA AUTO MARKET</p>
+    <h2 class="s-title rev">MARKET <em>ANALYTICS</em></h2>
+    <div class="charts-grid">
+      <div class="chart-box rev d1"><div class="chart-box-title">SEGMENT <em>SHARE</em></div><div style="position:relative;height:270px"><canvas id="ch-seg"></canvas></div></div>
+      <div class="chart-box rev d2"><div class="chart-box-title">BRAND <em>POPULARITY</em></div><div style="position:relative;height:270px"><canvas id="ch-brand"></canvas></div></div>
+      <div class="chart-box rev d3"><div class="chart-box-title">FUEL TYPE <em>SPLIT</em></div><div style="position:relative;height:270px"><canvas id="ch-fuel"></canvas></div></div>
+      <div class="chart-box rev d4"><div class="chart-box-title">PRICE <em>vs POWER</em></div><div style="position:relative;height:270px"><canvas id="ch-scatter"></canvas></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- BUDGET FINDER -->
+<section id="budget" style="background:var(--bg2)">
+  <div class="container">
+    <p class="s-label rev">// SHOP BY BUDGET</p>
+    <h2 class="s-title rev">FIND YOUR <em>PRICE</em> RANGE</h2>
+    <div class="price-grid rev">
+      <div class="pc" onclick="filterByBudget('0-5',this)"><div class="pc-range">₹0–5L</div><div class="pc-label">BUDGET</div><div class="pc-count" id="pb-0-5">–</div><div class="pc-glow"></div></div>
+      <div class="pc" onclick="filterByBudget('5-10',this)"><div class="pc-range">₹5–10L</div><div class="pc-label">ENTRY</div><div class="pc-count" id="pb-5-10">–</div><div class="pc-glow"></div></div>
+      <div class="pc" onclick="filterByBudget('10-20',this)"><div class="pc-range">₹10–20L</div><div class="pc-label">MID RANGE</div><div class="pc-count" id="pb-10-20">–</div><div class="pc-glow"></div></div>
+      <div class="pc" onclick="filterByBudget('20-50',this)"><div class="pc-range">₹20–50L</div><div class="pc-label">PREMIUM</div><div class="pc-count" id="pb-20-50">–</div><div class="pc-glow"></div></div>
+      <div class="pc" onclick="filterByBudget('50-100',this)"><div class="pc-range">₹50L–1Cr</div><div class="pc-label">LUXURY</div><div class="pc-count" id="pb-50-100">–</div><div class="pc-glow"></div></div>
+      <div class="pc" onclick="filterByBudget('100-99999',this)"><div class="pc-range">₹1Cr+</div><div class="pc-label">ULTRA LUX</div><div class="pc-count" id="pb-100-99999">–</div><div class="pc-glow"></div></div>
+    </div>
+    <div class="cars-grid" id="budget-grid"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand"><span class="footer-fire">🔥</span><span class="footer-name">HOT4WHEELS</span><span class="footer-fire" style="transform:scaleX(-1)">🔥</span></div>
+  <div class="footer-tag">INDIA'S ULTIMATE CAR DIRECTORY · 2026 EDITION</div>
+  <div class="footer-note">
+    All prices are ex-showroom Delhi. Data sourced from manufacturer websites, CarDekho, ZigWheels, AutocarIndia &amp; CarWale.<br>
+    Images from Wikimedia Commons under CC BY-SA licenses. For informational purposes only.<br>
+    © 2026 Hot4Wheels — Built with passion for Indian car enthusiasts 🏎️
+  </div>
+</footer>
+
+<!-- FLOAT COMPARE BAR -->
+<div class="float-cmp" id="float-cmp">
+  <span class="fcmp-txt" id="fcmp-txt">SELECT CARS TO COMPARE</span>
+  <button class="fcmp-go" onclick="goCompare()">COMPARE NOW →</button>
+  <button class="fcmp-clr" onclick="clearCompare()">✕ CLEAR</button>
+</div>
+
+<!-- CAR DETAIL MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="outsideClose(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-inner"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// IMAGE MAP — Using Wikimedia Commons & public domain images
+// Car images mapped by brand+model, using Wikipedia thumbnail API
+// Format: https://commons.wikimedia.org/wiki/Special:FilePath/FILENAME
+// ============================================================
+const IMG = {
+  // Maruti Suzuki
+  'alto k10': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Maruti_Alto_K10_-_2023.jpg/400px-Maruti_Alto_K10_-_2023.jpg',
+  's-presso': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/2022_Maruti_Suzuki_S-Presso_facelift%2C_front_8.28.22.jpg/400px-2022_Maruti_Suzuki_S-Presso_facelift%2C_front_8.28.22.jpg',
+  'swift': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/2024_Suzuki_Swift_Hybrid_1.2_CVT_%28front%29%2C_Kanto_2.jpg/400px-2024_Suzuki_Swift_Hybrid_1.2_CVT_%28front%29%2C_Kanto_2.jpg',
+  'baleno': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/2022_Maruti_Suzuki_Baleno_Alpha%2C_front_8.28.22.jpg/400px-2022_Maruti_Suzuki_Baleno_Alpha%2C_front_8.28.22.jpg',
+  'wagon r': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Maruti_Suzuki_Wagon_R_%28AN%29%2C_front_8.28.22.jpg/400px-Maruti_Suzuki_Wagon_R_%28AN%29%2C_front_8.28.22.jpg',
+  'dzire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Maruti_Suzuki_Dzire_2020.jpg/400px-Maruti_Suzuki_Dzire_2020.jpg',
+  'brezza': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Maruti_Suzuki_Brezza_2022.jpg/400px-Maruti_Suzuki_Brezza_2022.jpg',
+  'fronx': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_Maruti_Suzuki_Fronx_Alpha_%28front%29%2C_India.jpg/400px-2023_Maruti_Suzuki_Fronx_Alpha_%28front%29%2C_India.jpg',
+  'ertiga': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Maruti_Suzuki_Ertiga_2018.jpg/400px-Maruti_Suzuki_Ertiga_2018.jpg',
+  'grand vitara': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/2022_Maruti_Grand_Vitara_Alpha_Plus%2C_front_8.28.22.jpg/400px-2022_Maruti_Grand_Vitara_Alpha_Plus%2C_front_8.28.22.jpg',
+  'celerio': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Maruti_Suzuki_Celerio_2022.jpg/400px-Maruti_Suzuki_Celerio_2022.jpg',
+  // Hyundai
+  'grand i10 nios': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Hyundai_Grand_i10_NIOS_2019.jpg/400px-Hyundai_Grand_i10_NIOS_2019.jpg',
+  'i20': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/2021_Hyundai_i20_%28BC3%29_N_Line_DCT%2C_front_8.5.21.jpg/400px-2021_Hyundai_i20_%28BC3%29_N_Line_DCT%2C_front_8.5.21.jpg',
+  'venue': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/2023_Hyundai_Venue_facelift_%28front%29%2C_India.jpg/400px-2023_Hyundai_Venue_facelift_%28front%29%2C_India.jpg',
+  'creta': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/2024_Hyundai_Creta_%28SU2%29_N_Line_1.5_Turbo_AT_%28front%29%2C_India.jpg/400px-2024_Hyundai_Creta_%28SU2%29_N_Line_1.5_Turbo_AT_%28front%29%2C_India.jpg',
+  'alcazar': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Hyundai_Alcazar_2021.jpg/400px-Hyundai_Alcazar_2021.jpg',
+  'tucson': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/2022_Hyundai_Tucson_%28NX4%29_2.0_GDi_%28front%29%2C_China.jpg/400px-2022_Hyundai_Tucson_%28NX4%29_2.0_GDi_%28front%29%2C_China.jpg',
+  'ioniq 5': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Hyundai_IONIQ_5_Standard_Range_RWD_%28front%29%2C_Seoul.jpg/400px-Hyundai_IONIQ_5_Standard_Range_RWD_%28front%29%2C_Seoul.jpg',
+  // Tata
+  'tiago': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/2021_Tata_Tiago_XZ_Plus_AMT_%28front%29%2C_India.jpg/400px-2021_Tata_Tiago_XZ_Plus_AMT_%28front%29%2C_India.jpg',
+  'altroz': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/2023_Tata_Altroz_i-Turbo_%28front%29%2C_India.jpg/400px-2023_Tata_Altroz_i-Turbo_%28front%29%2C_India.jpg',
+  'punch': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/2023_Tata_Punch_Creative_%2B_iRA_S_CNG_%28front%29%2C_India.jpg/400px-2023_Tata_Punch_Creative_%2B_iRA_S_CNG_%28front%29%2C_India.jpg',
+  'nexon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tata_Nexon_EV_Max_%28front%29%2C_India.jpg/400px-Tata_Nexon_EV_Max_%28front%29%2C_India.jpg',
+  'nexon ev': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tata_Nexon_EV_Max_%28front%29%2C_India.jpg/400px-Tata_Nexon_EV_Max_%28front%29%2C_India.jpg',
+  'punch ev': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/2023_Tata_Punch_Creative_%2B_iRA_S_CNG_%28front%29%2C_India.jpg/400px-2023_Tata_Punch_Creative_%2B_iRA_S_CNG_%28front%29%2C_India.jpg',
+  'harrier': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Tata_Harrier_2023.jpg/400px-Tata_Harrier_2023.jpg',
+  'safari': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Tata_Safari_2021.jpg/400px-Tata_Safari_2021.jpg',
+  'sierra': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Tata_Sierra_EV_concept.jpg/400px-Tata_Sierra_EV_concept.jpg',
+  'curvv': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Tata_Curvv.ev_2024_%28front%29.jpg/400px-Tata_Curvv.ev_2024_%28front%29.jpg',
+  // Kia
+  'syros': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Kia_Syros_India_2025_%28front%29.jpg/400px-Kia_Syros_India_2025_%28front%29.jpg',
+  'seltos': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Kia_Seltos_2023_%28front%29%2C_India.jpg/400px-Kia_Seltos_2023_%28front%29%2C_India.jpg',
+  'sonet': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Kia_Sonet_%28facelift%2C_front%29%2C_India.jpg/400px-Kia_Sonet_%28facelift%2C_front%29%2C_India.jpg',
+  'carens': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Kia_Carens_%28front%29%2C_India.jpg/400px-Kia_Carens_%28front%29%2C_India.jpg',
+  'ev6': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Kia_EV6_GT_Line_%28facelift%2C_front%29.jpg/400px-Kia_EV6_GT_Line_%28facelift%2C_front%29.jpg',
+  // Mahindra
+  'thar': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Mahindra_Thar_%282nd_generation%29_front.jpg/400px-Mahindra_Thar_%282nd_generation%29_front.jpg',
+  'scorpio-n': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Mahindra_Scorpio-N_Z8L_AT_%28front%29%2C_India.jpg/400px-Mahindra_Scorpio-N_Z8L_AT_%28front%29%2C_India.jpg',
+  'xuv700': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Mahindra_XUV700_MX_%28front%29%2C_India.jpg/400px-Mahindra_XUV700_MX_%28front%29%2C_India.jpg',
+  'xuv300': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Mahindra_XUV300_%28front%29.jpg/400px-Mahindra_XUV300_%28front%29.jpg',
+  'bolero': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Mahindra_Bolero_Neo_%28front%29%2C_India.jpg/400px-Mahindra_Bolero_Neo_%28front%29%2C_India.jpg',
+  'be 6': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Mahindra_BE_6e_%28front%29%2C_India.jpg/400px-Mahindra_BE_6e_%28front%29%2C_India.jpg',
+  'xev 9e': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Mahindra_XEV_9e_%28front%29%2C_India.jpg/400px-Mahindra_XEV_9e_%28front%29%2C_India.jpg',
+  // Toyota
+  'glanza': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Toyota_Glanza_G_CVT_%28front%29%2C_India.jpg/400px-Toyota_Glanza_G_CVT_%28front%29%2C_India.jpg',
+  'hyryder': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/2022_Toyota_Urban_Cruiser_Hyryder_V_Hybrid_%28front%29%2C_India.jpg/400px-2022_Toyota_Urban_Cruiser_Hyryder_V_Hybrid_%28front%29%2C_India.jpg',
+  'innova crysta': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2022_Toyota_Innova_Crysta_2.4_GX_MT_%28front%29%2C_India.jpg/400px-2022_Toyota_Innova_Crysta_2.4_GX_MT_%28front%29%2C_India.jpg',
+  'innova hycross': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Toyota_Innova_Hycross_VX%2B_e-CVT_%28front%29%2C_India.jpg/400px-Toyota_Innova_Hycross_VX%2B_e-CVT_%28front%29%2C_India.jpg',
+  'fortuner': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/2021_Toyota_Fortuner_4WD_AT_%28front%29%2C_India.jpg/400px-2021_Toyota_Fortuner_4WD_AT_%28front%29%2C_India.jpg',
+  'camry': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Toyota_Camry_Hybrid_%28XV70%29%2C_front_8.5.21.jpg/400px-Toyota_Camry_Hybrid_%28XV70%29%2C_front_8.5.21.jpg',
+  // Honda
+  'amaze': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Honda_Amaze_2018.jpg/400px-Honda_Amaze_2018.jpg',
+  'city': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/2023_Honda_City_ZX_CVT_%28front%29%2C_India.jpg/400px-2023_Honda_City_ZX_CVT_%28front%29%2C_India.jpg',
+  'city e:hev': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/2023_Honda_City_ZX_CVT_%28front%29%2C_India.jpg/400px-2023_Honda_City_ZX_CVT_%28front%29%2C_India.jpg',
+  'elevate': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Honda_Elevate_ZX_CVT_%28front%29%2C_India.jpg/400px-Honda_Elevate_ZX_CVT_%28front%29%2C_India.jpg',
+  // VW/Skoda
+  'virtus': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Volkswagen_Virtus_Highline_MT_%28front%29%2C_India.jpg/400px-Volkswagen_Virtus_Highline_MT_%28front%29%2C_India.jpg',
+  'taigun': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Volkswagen_Taigun_GT_%28front%29%2C_India.jpg/400px-Volkswagen_Taigun_GT_%28front%29%2C_India.jpg',
+  'slavia': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Skoda_Slavia_Style_1.5_TSI_%28front%29%2C_India.jpg/400px-Skoda_Slavia_Style_1.5_TSI_%28front%29%2C_India.jpg',
+  'kushaq': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Skoda_Kushaq_Monte_Carlo_%28front%29%2C_India.jpg/400px-Skoda_Kushaq_Monte_Carlo_%28front%29%2C_India.jpg',
+  'kylaq': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Skoda_Kylaq_Signature_%28front%29%2C_India.jpg/400px-Skoda_Kylaq_Signature_%28front%29%2C_India.jpg',
+  // MG
+  'hector': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/MG_Hector_2019_at_2019_Pune_Festival_of_Speed.jpg/400px-MG_Hector_2019_at_2019_Pune_Festival_of_Speed.jpg',
+  'windsor ev': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/MG_Windsor_EV_%28front%29%2C_India.jpg/400px-MG_Windsor_EV_%28front%29%2C_India.jpg',
+  'zs ev': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/MG_ZS_EV_2022_%28front%29%2C_India.jpg/400px-MG_ZS_EV_2022_%28front%29%2C_India.jpg',
+  // Renault/Nissan
+  'kwid': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Renault_Kwid_Climber_%28front%29.jpg/400px-Renault_Kwid_Climber_%28front%29.jpg',
+  'duster': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/2024_Dacia_Duster_%28front%29.jpg/400px-2024_Dacia_Duster_%28front%29.jpg',
+  'magnite': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/2022_Nissan_Magnite_%28front%29%2C_India.jpg/400px-2022_Nissan_Magnite_%28front%29%2C_India.jpg',
+  // LUXURY - BMW
+  '2 series gran coupe': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/BMW_2_Series_Gran_Coupe_220i_M_Sport_%28F44%29_%28front%29%2C_Singapore.jpg/400px-BMW_2_Series_Gran_Coupe_220i_M_Sport_%28F44%29_%28front%29%2C_Singapore.jpg',
+  '3 series': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/2023_BMW_330i_xDrive_M_Sport_%28G20%2C_facelift%29%2C_front_8.7.23.jpg/400px-2023_BMW_330i_xDrive_M_Sport_%28G20%2C_facelift%29%2C_front_8.7.23.jpg',
+  '5 series': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/2024_BMW_530i_xDrive_M_Sport_%28G60%29%2C_front_10.1.24.jpg/400px-2024_BMW_530i_xDrive_M_Sport_%28G60%29%2C_front_10.1.24.jpg',
+  '7 series': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/2023_BMW_740i_%28G70%29%2C_front_10.28.22.jpg/400px-2023_BMW_740i_%28G70%29%2C_front_10.28.22.jpg',
+  'x1': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/2023_BMW_X1_xDrive23i_M_Sport_%28U11%29%2C_front_4.12.23.jpg/400px-2023_BMW_X1_xDrive23i_M_Sport_%28U11%29%2C_front_4.12.23.jpg',
+  'x3': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/2022_BMW_X3_xDrive30i_M_Sport_%28G01%2C_facelift%29%2C_front_8.18.22.jpg/400px-2022_BMW_X3_xDrive30i_M_Sport_%28G01%2C_facelift%29%2C_front_8.18.22.jpg',
+  'x5': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/2024_BMW_X5_xDrive50e_M_Sport_%28G05%2C_facelift%2C_PHEV%29%2C_front_11.21.23.jpg/400px-2024_BMW_X5_xDrive50e_M_Sport_%28G05%2C_facelift%2C_PHEV%29%2C_front_11.21.23.jpg',
+  'x7': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/2023_BMW_X7_xDrive40i_M_Sport_%28G07%2C_facelift%29%2C_front_6.16.23.jpg/400px-2023_BMW_X7_xDrive40i_M_Sport_%28G07%2C_facelift%29%2C_front_6.16.23.jpg',
+  'm5': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/2025_BMW_M5_xDrive_%28G90%29%2C_front_11.3.24.jpg/400px-2025_BMW_M5_xDrive_%28G90%29%2C_front_11.3.24.jpg',
+  'm340i': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/2023_BMW_330i_xDrive_M_Sport_%28G20%2C_facelift%29%2C_front_8.7.23.jpg/400px-2023_BMW_330i_xDrive_M_Sport_%28G20%2C_facelift%29%2C_front_8.7.23.jpg',
+  'ix': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/2022_BMW_iX_xDrive50_Sport_%28front%29.jpg/400px-2022_BMW_iX_xDrive50_Sport_%28front%29.jpg',
+  'i4': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/2022_BMW_i4_M50_%28front%29.jpg/400px-2022_BMW_i4_M50_%28front%29.jpg',
+  'i7': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/2023_BMW_i7_xDrive60_%28front%29.jpg/400px-2023_BMW_i7_xDrive60_%28front%29.jpg',
+  'z4': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/2019_BMW_Z4_M40i_roadster%2C_front_8.5.19.jpg/400px-2019_BMW_Z4_M40i_roadster%2C_front_8.5.19.jpg',
+  // Mercedes
+  'a-class limousine': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Mercedes-Benz_A-Class_Sedan_V177_China_2019_001.jpg/400px-Mercedes-Benz_A-Class_Sedan_V177_China_2019_001.jpg',
+  'c-class': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/2022_Mercedes-Benz_C-Class_Avantgarde_%28W206%29%2C_front_8.5.21.jpg/400px-2022_Mercedes-Benz_C-Class_Avantgarde_%28W206%29%2C_front_8.5.21.jpg',
+  'e-class': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/2024_Mercedes-Benz_E300_Exclusive_%28W214%29%2C_front_3.21.24.jpg/400px-2024_Mercedes-Benz_E300_Exclusive_%28W214%29%2C_front_3.21.24.jpg',
+  's-class': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/2021_Mercedes-Benz_S500_4MATIC_Premium_Plus_%28W223%29%2C_front_8.5.21.jpg/400px-2021_Mercedes-Benz_S500_4MATIC_Premium_Plus_%28W223%29%2C_front_8.5.21.jpg',
+  'gla': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/2021_Mercedes-Benz_GLA250_4MATIC_%28H247%29%2C_front_8.5.21.jpg/400px-2021_Mercedes-Benz_GLA250_4MATIC_%28H247%29%2C_front_8.5.21.jpg',
+  'glc': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/2023_Mercedes-Benz_GLC_300_%28C254%29%2C_front_11.3.22.jpg/400px-2023_Mercedes-Benz_GLC_300_%28C254%29%2C_front_11.3.22.jpg',
+  'gle': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/2020_Mercedes-Benz_GLE_450_AMG_Line_Premium_Plus_%28V167%29%2C_front_8.5.21.jpg/400px-2020_Mercedes-Benz_GLE_450_AMG_Line_Premium_Plus_%28V167%29%2C_front_8.5.21.jpg',
+  'gls': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/2020_Mercedes-Benz_GLS_450_4MATIC_AMG_Line_%28X167%29%2C_front_8.5.21.jpg/400px-2020_Mercedes-Benz_GLS_450_4MATIC_AMG_Line_%28X167%29%2C_front_8.5.21.jpg',
+  'g-class': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/2019_Mercedes-Benz_G550_%28W464%29%2C_front_8.5.21.jpg/400px-2019_Mercedes-Benz_G550_%28W464%29%2C_front_8.5.21.jpg',
+  'amg gt': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/2023_Mercedes-AMG_GT_43_4MATIC%2B_%28X290%29%2C_front_11.3.22.jpg/400px-2023_Mercedes-AMG_GT_43_4MATIC%2B_%28X290%29%2C_front_11.3.22.jpg',
+  'maybach s-class': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/2022_Mercedes-Maybach_S580_4MATIC_%28Z223%29%2C_front_4.1.22.jpg/400px-2022_Mercedes-Maybach_S580_4MATIC_%28Z223%29%2C_front_4.1.22.jpg',
+  'eqa': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/2023_Mercedes-Benz_EQA_250%2B_AMG_Line_%28H243%2C_facelift%29%2C_front_5.4.23.jpg/400px-2023_Mercedes-Benz_EQA_250%2B_AMG_Line_%28H243%2C_facelift%29%2C_front_5.4.23.jpg',
+  'cla': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Mercedes-Benz_CLA_250_4MATIC_%28C118%29%2C_front_8.5.21.jpg/400px-Mercedes-Benz_CLA_250_4MATIC_%28C118%29%2C_front_8.5.21.jpg',
+  // Audi
+  'a4': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/2020_Audi_A4_40_TFSI_S_line_%28B9%29%2C_front_8.5.21.jpg/400px-2020_Audi_A4_40_TFSI_S_line_%28B9%29%2C_front_8.5.21.jpg',
+  'a6': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/2019_Audi_A6_45_TFSI_S_line_%28C8%29%2C_front_8.5.21.jpg/400px-2019_Audi_A6_45_TFSI_S_line_%28C8%29%2C_front_8.5.21.jpg',
+  'a8': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/2020_Audi_A8_60_TFSI_e_quattro_%28D5%29%2C_front_8.5.21.jpg/400px-2020_Audi_A8_60_TFSI_e_quattro_%28D5%29%2C_front_8.5.21.jpg',
+  'q3': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/2019_Audi_Q3_%28F3%29_35_TFSI_S_line_%28front%29%2C_8.5.21.jpg/400px-2019_Audi_Q3_%28F3%29_35_TFSI_S_line_%28front%29%2C_8.5.21.jpg',
+  'q5': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/2021_Audi_Q5_40_TDI_quattro_S_line_%28B9%2C_facelift%29%2C_front_8.5.21.jpg/400px-2021_Audi_Q5_40_TDI_quattro_S_line_%28B9%2C_facelift%29%2C_front_8.5.21.jpg',
+  'q7': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/2020_Audi_Q7_50_TDI_quattro_S_line_%28facelift%29%2C_front_8.5.21.jpg/400px-2020_Audi_Q7_50_TDI_quattro_S_line_%28facelift%29%2C_front_8.5.21.jpg',
+  'q8': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/2019_Audi_Q8_50_TDI_quattro_S_line_%28front%29%2C_8.5.21.jpg/400px-2019_Audi_Q8_50_TDI_quattro_S_line_%28front%29%2C_8.5.21.jpg',
+  'e-tron gt': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/2022_Audi_e-tron_GT_quattro%2C_front_8.5.21.jpg/400px-2022_Audi_e-tron_GT_quattro%2C_front_8.5.21.jpg',
+  'rs q8': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/2022_Audi_RS_Q8_%28facelift%29%2C_front_8.5.21.jpg/400px-2022_Audi_RS_Q8_%28facelift%29%2C_front_8.5.21.jpg',
+  // Porsche
+  '911': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/2024_Porsche_911_Carrera_S_%28992.2%29%2C_front_10.20.23.jpg/400px-2024_Porsche_911_Carrera_S_%28992.2%29%2C_front_10.20.23.jpg',
+  'cayenne': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/2024_Porsche_Cayenne_S_E-Hybrid_%28PO536%29%2C_front_10.20.23.jpg/400px-2024_Porsche_Cayenne_S_E-Hybrid_%28PO536%29%2C_front_10.20.23.jpg',
+  'macan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/2024_Porsche_Macan_EV_%28front%29.jpg/400px-2024_Porsche_Macan_EV_%28front%29.jpg',
+  'panamera': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/2021_Porsche_Panamera_4_%28G2%2C_facelift%29%2C_front_8.5.21.jpg/400px-2021_Porsche_Panamera_4_%28G2%2C_facelift%29%2C_front_8.5.21.jpg',
+  'taycan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/2020_Porsche_Taycan_Turbo_%28front%29.jpg/400px-2020_Porsche_Taycan_Turbo_%28front%29.jpg',
+  // Land Rover
+  'range rover': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/2022_Range_Rover_SWB_D300_SE_%28front%29.jpg/400px-2022_Range_Rover_SWB_D300_SE_%28front%29.jpg',
+  'range rover sport': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/2023_Range_Rover_Sport_P400_Dynamic_%28front%29.jpg/400px-2023_Range_Rover_Sport_P400_Dynamic_%28front%29.jpg',
+  'defender': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/2020_Land_Rover_Defender_110_S_D240_%28front%29%2C_8.5.21.jpg/400px-2020_Land_Rover_Defender_110_S_D240_%28front%29%2C_8.5.21.jpg',
+  'discovery': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/2021_Land_Rover_Discovery_R-Dynamic_D300_%28front%29%2C_8.5.21.jpg/400px-2021_Land_Rover_Discovery_R-Dynamic_D300_%28front%29%2C_8.5.21.jpg',
+  'freelander': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/2020_Land_Rover_Defender_110_S_D240_%28front%29%2C_8.5.21.jpg/400px-2020_Land_Rover_Defender_110_S_D240_%28front%29%2C_8.5.21.jpg',
+  'velar': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/2023_Range_Rover_Velar_P250_R-Dynamic_SE_%28front%29.jpg/400px-2023_Range_Rover_Velar_P250_R-Dynamic_SE_%28front%29.jpg',
+  // Volvo
+  'xc40': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/2022_Volvo_XC40_Recharge_Pure_Electric_%28front%29.jpg/400px-2022_Volvo_XC40_Recharge_Pure_Electric_%28front%29.jpg',
+  'xc60': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/2022_Volvo_XC60_B5_AWD_Plus_Dark_%28front%29.jpg/400px-2022_Volvo_XC60_B5_AWD_Plus_Dark_%28front%29.jpg',
+  'xc90': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/2020_Volvo_XC90_T8_%28front%29.jpg/400px-2020_Volvo_XC90_T8_%28front%29.jpg',
+  's90': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/2021_Volvo_S90_T8_AWD_Inscription_%28front%29.jpg/400px-2021_Volvo_S90_T8_AWD_Inscription_%28front%29.jpg',
+  'ex90': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Volvo_EX90_%28front%29.jpg/400px-Volvo_EX90_%28front%29.jpg',
+  // Lexus
+  'es': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/2022_Lexus_ES_300h_Executive_%28front%29.jpg/400px-2022_Lexus_ES_300h_Executive_%28front%29.jpg',
+  'ls': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/2021_Lexus_LS_500h_Executive_%28front%29.jpg/400px-2021_Lexus_LS_500h_Executive_%28front%29.jpg',
+  'lx': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/2022_Lexus_LX_600_Ultra_Luxury_%28front%29.jpg/400px-2022_Lexus_LX_600_Ultra_Luxury_%28front%29.jpg',
+  'nx': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/2022_Lexus_NX_350h_F_Sport_%28front%29.jpg/400px-2022_Lexus_NX_350h_F_Sport_%28front%29.jpg',
+  'rx': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/2023_Lexus_RX_500h_F_Sport_Performance_%28front%29.jpg/400px-2023_Lexus_RX_500h_F_Sport_Performance_%28front%29.jpg',
+  'lc': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/2022_Lexus_LC_500_Inspiration_%28front%29.jpg/400px-2022_Lexus_LC_500_Inspiration_%28front%29.jpg',
+  // Jaguar
+  'f-pace': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/2021_Jaguar_F-Pace_P400e_R-Dynamic_SE_%28front%29.jpg/400px-2021_Jaguar_F-Pace_P400e_R-Dynamic_SE_%28front%29.jpg',
+  'xe': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/2019_Jaguar_XE_R-Sport_D180_AWD_%28front%29%2C_8.5.21.jpg/400px-2019_Jaguar_XE_R-Sport_D180_AWD_%28front%29%2C_8.5.21.jpg',
+  // Rolls-Royce
+  'ghost': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Rolls-Royce_Ghost_Series_II_%28front%29.jpg/400px-Rolls-Royce_Ghost_Series_II_%28front%29.jpg',
+  'phantom': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Rolls-Royce_Phantom_VIII_%28front%29.jpg/400px-Rolls-Royce_Phantom_VIII_%28front%29.jpg',
+  'cullinan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Rolls-Royce_Cullinan_%28front%29.jpg/400px-Rolls-Royce_Cullinan_%28front%29.jpg',
+  'spectre': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Rolls-Royce_Spectre_%28front%29.jpg/400px-Rolls-Royce_Spectre_%28front%29.jpg',
+  // Bentley
+  'continental gt': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/2020_Bentley_Continental_GT_V8_%28front%29.jpg/400px-2020_Bentley_Continental_GT_V8_%28front%29.jpg',
+  'bentayga': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/2021_Bentley_Bentayga_V8_%28front%29.jpg/400px-2021_Bentley_Bentayga_V8_%28front%29.jpg',
+  'flying spur': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/2022_Bentley_Flying_Spur_W12_S_%28front%29.jpg/400px-2022_Bentley_Flying_Spur_W12_S_%28front%29.jpg',
+  // Lamborghini
+  'urus': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/2023_Lamborghini_Urus_S_%28front%29.jpg/400px-2023_Lamborghini_Urus_S_%28front%29.jpg',
+  'huracan': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/2022_Lamborghini_Huracan_LP_580-2_%28front%29.jpg/400px-2022_Lamborghini_Huracan_LP_580-2_%28front%29.jpg',
+  // Ferrari
+  'roma': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/2020_Ferrari_Roma_%28front%29.jpg/400px-2020_Ferrari_Roma_%28front%29.jpg',
+  'purosangue': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Ferrari_Purosangue_%28front%29.jpg/400px-Ferrari_Purosangue_%28front%29.jpg',
+  // Maserati
+  'ghibli': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/2022_Maserati_Ghibli_Modena_Q4_%28front%29.jpg/400px-2022_Maserati_Ghibli_Modena_Q4_%28front%29.jpg',
+  'levante': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/2022_Maserati_Levante_Modena_S_%28front%29.jpg/400px-2022_Maserati_Levante_Modena_S_%28front%29.jpg',
+  'grecale': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/2022_Maserati_Grecale_GT_%28front%29.jpg/400px-2022_Maserati_Grecale_GT_%28front%29.jpg',
+  // Misc
+  'gurkha': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Force_Gurkha_5-door_%28front%29%2C_India.jpg/400px-Force_Gurkha_5-door_%28front%29%2C_India.jpg',
+  'd-max v-cross': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Isuzu_D-Max_V-Cross_%28front%29.jpg/400px-Isuzu_D-Max_V-Cross_%28front%29.jpg',
+  'compass': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/2021_Jeep_Compass_%28facelift%2C_front%29%2C_India.jpg/400px-2021_Jeep_Compass_%28facelift%2C_front%29%2C_India.jpg',
+  'wrangler': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/2021_Jeep_Wrangler_Unlimited_Rubicon_%28front%29.jpg/400px-2021_Jeep_Wrangler_Unlimited_Rubicon_%28front%29.jpg',
+  'c3': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Citro%C3%ABn_C3_%28front%2C_India%2C_2022%29.jpg/400px-Citro%C3%ABn_C3_%28front%2C_India%2C_2022%29.jpg',
+  'basalt': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Citro%C3%ABn_Basalt_%28front%29%2C_India.jpg/400px-Citro%C3%ABn_Basalt_%28front%29%2C_India.jpg',
+};
+
+function getImg(car){
+  const key = car.name.toLowerCase();
+  return IMG[key] || IMG[car.name.toLowerCase().split(' ')[0]] || null;
+}
+
+// ============================================================
+// CAR DATABASE
+// ============================================================
+const CARS = [
+  // HATCHBACKS
+  {id:1,brand:'Maruti Suzuki',name:'Alto K10',seg:'Hatchback',lux:false,fuel:'Petrol/CNG',price:3.99,ps:'₹3.99L',power:67,torque:89,eng:'1.0L',trans:'Manual/AMT',mileage:'24.39 kmpl',seats:5,boot:214,badge:'popular',sales:15,colors:[{n:'Sizzling Red',c:'#cc2222'},{n:'Arctic White',c:'#f0f0f0'},{n:'Silky Silver',c:'#c0c0c0'},{n:'Granite Grey',c:'#555'},{n:'Cerulean Blue',c:'#2244aa'}],specs:{Length:'3530mm',Width:'1490mm',Height:'1520mm',Wheelbase:'2380mm','Gnd Clear':'160mm','Fuel Tank':'27L','Top Speed':'145 km/h','0-100':'14.5s'},features:['Dual Airbags','ABS+EBD','Power Steering','Rear Defogger','Height Adj Belt','SmartPlay Infotainment'],int:['Beige Fabric','All-Black Fabric']},
+  {id:2,brand:'Maruti Suzuki',name:'S-Presso',seg:'Hatchback',lux:false,fuel:'Petrol/CNG',price:4.26,ps:'₹4.26L',power:66,torque:89,eng:'1.0L',trans:'Manual/AMT',mileage:'25.3 kmpl',seats:5,boot:270,badge:null,sales:10,colors:[{n:'Solid White',c:'#f0f0f0'},{n:'Sizzling Orange',c:'#ff5500'},{n:'Uptown Red',c:'#bb2222'},{n:'Granite Grey',c:'#555'}],specs:{Length:'3565mm',Width:'1520mm',Height:'1549mm',Wheelbase:'2380mm','Gnd Clear':'180mm','Fuel Tank':'27L','Top Speed':'150 km/h','0-100':'14.2s'},features:['ABS','Dual Airbags','SmartPlay Studio','Rear Camera','Auto Gear Shift','Gear Shift Indicator'],int:['Beige Interior','Triton Blue Interior']},
+  {id:3,brand:'Maruti Suzuki',name:'Swift',seg:'Hatchback',lux:false,fuel:'Petrol/CNG',price:6.49,ps:'₹6.49L',power:82,torque:112,eng:'1.2L DualJet',trans:'Manual/AMT',mileage:'23.76 kmpl',seats:5,boot:268,badge:'popular',sales:22,colors:[{n:'Pearl Arctic White',c:'#f8f8f8'},{n:'Solid Fire Red',c:'#cc0000'},{n:'Speedy Blue',c:'#0044bb'},{n:'Midnight Black',c:'#111'},{n:'Magma Grey',c:'#444'},{n:'Lucent Orange',c:'#ff7700'}],specs:{Length:'3860mm',Width:'1735mm',Height:'1530mm',Wheelbase:'2450mm','Gnd Clear':'163mm','Fuel Tank':'37L','Top Speed':'165 km/h','0-100':'11.5s'},features:['LED Headlamps','Rear Cam+Sensors','SmartPlay Pro+','Lane Departure','6 Airbags','ESP'],int:['Black Fabric','Black/Ivory Dual Tone']},
+  {id:4,brand:'Maruti Suzuki',name:'Baleno',seg:'Hatchback',lux:false,fuel:'Petrol',price:6.61,ps:'₹6.61L',power:90,torque:113,eng:'1.2L DualJet',trans:'Manual/AMT',mileage:'22.35 kmpl',seats:5,boot:318,badge:null,sales:17,colors:[{n:'Pearl Arctic White',c:'#f8f8f8'},{n:'Opulent Red',c:'#cc1100'},{n:'Grandeur Grey',c:'#777'},{n:'Splendid Silver',c:'#bbb'},{n:'Midnight Black',c:'#111'},{n:'Nexa Blue',c:'#003388'}],specs:{Length:'3990mm',Width:'1745mm',Height:'1500mm',Wheelbase:'2520mm','Gnd Clear':'170mm','Fuel Tank':'37L','Top Speed':'165 km/h','0-100':'11.8s'},features:['HUD Display','360° Camera','SmartPlay Pro+','6 Airbags','Lane Watch Cam','Wireless Charging'],int:['Beige Fabric','Black Premium Fabric','Ivory Dual Tone']},
+  {id:5,brand:'Maruti Suzuki',name:'Wagon R',seg:'Hatchback',lux:false,fuel:'Petrol/CNG',price:5.78,ps:'₹5.78L',power:66,torque:89,eng:'1.0L/1.2L',trans:'Manual/AMT',mileage:'25.19 kmpl',seats:5,boot:341,badge:'popular',sales:20,colors:[{n:'Superior White',c:'#f8f8f8'},{n:'Gallant Red',c:'#cc2200'},{n:'Poolside Blue',c:'#2255aa'},{n:'Silky Silver',c:'#c0c0c0'}],specs:{Length:'3655mm',Width:'1620mm',Height:'1675mm',Wheelbase:'2435mm','Gnd Clear':'165mm','Fuel Tank':'32L','Top Speed':'155 km/h','0-100':'13.6s'},features:['SmartPlay Studio','Rear Camera','360° Sensors','Auto Gear Shift','6 Airbags','ESP'],int:['All Black','Beige Fabric']},
+  {id:6,brand:'Maruti Suzuki',name:'Celerio',seg:'Hatchback',lux:false,fuel:'Petrol/CNG',price:5.37,ps:'₹5.37L',power:66,torque:89,eng:'1.0L',trans:'Manual/AMT',mileage:'26.68 kmpl',seats:5,boot:235,badge:null,sales:8,colors:[{n:'Pearl Arctic White',c:'#f8f8f8'},{n:'Silky Silver',c:'#c0c0c0'},{n:'Speedy Blue',c:'#0044bb'},{n:'Midnight Black',c:'#111'}],specs:{Length:'3695mm',Width:'1655mm',Height:'1555mm',Wheelbase:'2425mm','Gnd Clear':'170mm','Fuel Tank':'32L','Top Speed':'155 km/h','0-100':'14s'},features:['SmartPlay Studio','Rear Camera','AGS (AMT)','Auto Headlamps','ABS','Dual Airbags'],int:['Beige','Black']},
+  {id:7,brand:'Hyundai',name:'Grand i10 Nios',seg:'Hatchback',lux:false,fuel:'Petrol/CNG',price:5.90,ps:'₹5.90L',power:83,torque:114,eng:'1.2L Kappa',trans:'Manual/AT',mileage:'20.7 kmpl',seats:5,boot:260,badge:null,sales:10,colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Fiery Red',c:'#cc1100'},{n:'Typhoon Silver',c:'#aaa'},{n:'Titan Grey',c:'#555'}],specs:{Length:'3805mm',Width:'1680mm',Height:'1520mm',Wheelbase:'2450mm','Gnd Clear':'165mm','Fuel Tank':'37L','Top Speed':'160 km/h','0-100':'13s'},features:['8" Touchscreen','Wireless CarPlay','Rear Camera','6 Airbags','BlueLink Connected','Lane Watch Cam'],int:['Beige Fabric','Black Fabric']},
+  {id:8,brand:'Hyundai',name:'i20',seg:'Hatchback',lux:false,fuel:'Petrol/Diesel',price:7.04,ps:'₹7.04L',power:83,torque:100,eng:'1.2L/1.5L',trans:'Manual/DCT/CVT',mileage:'20.35 kmpl',seats:5,boot:311,badge:null,sales:14,colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Fiery Red',c:'#cc1100'},{n:'Titan Grey',c:'#555'},{n:'Typhoon Silver',c:'#aaa'},{n:'Aqua Teal',c:'#008888'}],specs:{Length:'3995mm',Width:'1775mm',Height:'1505mm',Wheelbase:'2580mm','Gnd Clear':'170mm','Fuel Tank':'37L','Top Speed':'170 km/h','0-100':'10.8s'},features:['Sunroof','BlueLink 58 Features','Bose 7-Speaker','Ventilated Seats','Wireless Charging','OTA Updates'],int:['Black Sport','Black/Beige Luxury','Teal Sport']},
+  {id:9,brand:'Tata',name:'Tiago',seg:'Hatchback',lux:false,fuel:'Petrol/CNG',price:5.60,ps:'₹5.60L',power:86,torque:113,eng:'1.2L Revotron',trans:'Manual/AMT',mileage:'19.01 kmpl',seats:5,boot:242,badge:null,sales:11,colors:[{n:'Pure Silver',c:'#c0c0c0'},{n:'Flame Red',c:'#cc1100'},{n:'Arizona Blue',c:'#2244aa'},{n:'Daytona Grey',c:'#555'},{n:'Opal White',c:'#f8f8f8'}],specs:{Length:'3765mm',Width:'1677mm',Height:'1535mm',Wheelbase:'2400mm','Gnd Clear':'165mm','Fuel Tank':'35L','Top Speed':'158 km/h','0-100':'13.4s'},features:['Harman Touchscreen','Rear Camera','iRA Connected','Voice Commands','Auto Dimming ORVM','Follow-Me-Home Lamps'],int:['Oyster White','Charcoal Black']},
+  {id:10,brand:'Tata',name:'Altroz',seg:'Hatchback',lux:false,fuel:'Petrol/Diesel/CNG',price:6.60,ps:'₹6.60L',power:86,torque:113,eng:'1.2L/1.5L',trans:'Manual/DCT',mileage:'19.05 kmpl',seats:5,boot:345,badge:null,sales:9,colors:[{n:'Avenue White',c:'#f8f8f8'},{n:'High-Street Gold',c:'#ccaa00'},{n:'Downtown Red',c:'#cc1100'},{n:'Skyline Silver',c:'#bbb'}],specs:{Length:'3990mm',Width:'1755mm',Height:'1523mm',Wheelbase:'2501mm','Gnd Clear':'165mm','Fuel Tank':'37L','Top Speed':'160 km/h','0-100':'11.9s'},features:['10.25" Infotainment','360° Camera','iRA Connected','6 Airbags','Wireless Charging','ADAS'],int:['Cosmo Dark','Oyster White','Luxe White Caramel']},
+  {id:11,brand:'Renault',name:'Kwid',seg:'Hatchback',lux:false,fuel:'Petrol',price:4.70,ps:'₹4.70L',power:54,torque:72,eng:'0.8L/1.0L',trans:'Manual/AMT',mileage:'22.3 kmpl',seats:5,boot:279,badge:null,sales:6,colors:[{n:'Ice Cool White',c:'#f8f8f8'},{n:'Fiery Red',c:'#cc1100'},{n:'Moonlight Silver',c:'#bbb'},{n:'Zanskar Blue',c:'#0033aa'}],specs:{Length:'3731mm',Width:'1579mm',Height:'1478mm',Wheelbase:'2422mm','Gnd Clear':'180mm','Fuel Tank':'28L','Top Speed':'140 km/h','0-100':'15s'},features:['8" Touchscreen','Rear Camera','Bluetooth Audio','Digital Cluster','Central Locking','ABS+EBD'],int:['Black Fabric','Grey Fabric']},
+  {id:12,brand:'Citroën',name:'C3',seg:'Hatchback',lux:false,fuel:'Petrol/CNG',price:6.16,ps:'₹6.16L',power:83,torque:115,eng:'1.2L PureTech',trans:'Manual/AT',mileage:'19.4 kmpl',seats:5,boot:316,badge:null,sales:4,colors:[{n:'Steel Grey',c:'#888'},{n:'Pearl White',c:'#f8f8f8'},{n:'Polar Blue',c:'#336699'},{n:'Spicy Orange',c:'#ff6600'}],specs:{Length:'3981mm',Width:'1733mm',Height:'1591mm',Wheelbase:'2540mm','Gnd Clear':'180mm','Fuel Tank':'40L','Top Speed':'165 km/h','0-100':'13s'},features:['10" HD Touchscreen','Rear Camera','6 Airbags','Progressive Hydraulic Cushions','Wireless Android Auto','Advanced Comfort Suspension'],int:['Grey Interior','Rust/Black Dual']},
+  // SEDANS
+  {id:13,brand:'Maruti Suzuki',name:'Dzire',seg:'Sedan',lux:false,fuel:'Petrol/CNG',price:6.99,ps:'₹6.99L',power:82,torque:112,eng:'1.2L DualJet',trans:'Manual/AMT',mileage:'24.12 kmpl',seats:5,boot:382,badge:'popular',sales:26,colors:[{n:'Arctic White',c:'#f8f8f8'},{n:'Dignity Brown',c:'#5a3018'},{n:'Splendid Silver',c:'#c0c0c0'},{n:'Oxford Blue',c:'#002255'},{n:'Midnight Black',c:'#111'}],specs:{Length:'3995mm',Width:'1735mm',Height:'1515mm',Wheelbase:'2450mm','Gnd Clear':'163mm','Fuel Tank':'37L','Top Speed':'170 km/h','0-100':'11.2s'},features:['SmartPlay Pro+','Rear Camera+Sensors','6 Airbags','Lane Departure','Cruise Control','Auto Headlamps'],int:['Beige Fabric','Black Fabric']},
+  {id:14,brand:'Honda',name:'Amaze',seg:'Sedan',lux:false,fuel:'Petrol',price:7.89,ps:'₹7.89L',power:90,torque:110,eng:'1.2L i-VTEC',trans:'Manual/CVT',mileage:'18.6 kmpl',seats:5,boot:420,badge:null,sales:9,colors:[{n:'Platinum White',c:'#f8f8f8'},{n:'Radiant Red',c:'#cc1100'},{n:'Meteoroid Grey',c:'#777'},{n:'Lunar Silver',c:'#bbb'},{n:'Golden Brown',c:'#886633'}],specs:{Length:'3995mm',Width:'1695mm',Height:'1500mm',Wheelbase:'2470mm','Gnd Clear':'165mm','Fuel Tank':'35L','Top Speed':'165 km/h','0-100':'12.8s'},features:['7" Touchscreen','Android Auto','Reverse Camera','Paddle Shifters','6 Airbags','Lane Watch Cam'],int:['Black Fabric','Beige Fabric']},
+  {id:15,brand:'Honda',name:'City',seg:'Sedan',lux:false,fuel:'Petrol',price:11.59,ps:'₹11.59L',power:121,torque:145,eng:'1.5L i-VTEC',trans:'Manual/CVT',mileage:'17.8 kmpl',seats:5,boot:506,badge:null,sales:10,colors:[{n:'Platinum White',c:'#f8f8f8'},{n:'Radiant Red',c:'#cc1100'},{n:'Meteoroid Grey',c:'#777'},{n:'Lunar Silver',c:'#bbb'}],specs:{Length:'4553mm',Width:'1748mm',Height:'1467mm',Wheelbase:'2600mm','Gnd Clear':'165mm','Fuel Tank':'40L','Top Speed':'190 km/h','0-100':'10.6s'},features:['Honda Sensing ADAS','LaneWatch Camera','Sunroof','Remote Engine Start','Wireless Charging','8" Touchscreen'],int:['Black Leather','Beige Leather','Black/Ivory Dual']},
+  {id:16,brand:'Honda',name:'City e:HEV',seg:'Sedan',lux:false,fuel:'Hybrid',price:19.52,ps:'₹19.52L',power:109,torque:253,eng:'1.5L Hybrid',trans:'e-CVT',mileage:'26.5 kmpl',seats:5,boot:506,badge:null,sales:4,colors:[{n:'Platinum White',c:'#f8f8f8'},{n:'Midnight Amethyst',c:'#223355'},{n:'Meteoroid Grey',c:'#777'}],specs:{Length:'4553mm',Width:'1748mm',Height:'1467mm',Wheelbase:'2600mm','Gnd Clear':'165mm','Fuel Tank':'40L','Top Speed':'180 km/h','0-100':'9.8s'},features:['Self-Charging Hybrid','Honda Sensing','8" Touchscreen','Wireless Charging','6 Airbags','17" Alloys'],int:['Black Leather','Ivory Dual-tone Leather']},
+  {id:17,brand:'Volkswagen',name:'Virtus',seg:'Sedan',lux:false,fuel:'Petrol',price:11.56,ps:'₹11.56L',power:115,torque:178,eng:'1.0/1.5L TSI',trans:'Manual/AT',mileage:'19.89 kmpl',seats:5,boot:521,badge:null,sales:5,colors:[{n:'Candy White',c:'#f8f8f8'},{n:'Deep Black Pearl',c:'#111'},{n:'Reflex Silver',c:'#bbb'},{n:'Raining Grey',c:'#888'},{n:'Cornflower Blue',c:'#3355aa'}],specs:{Length:'4561mm',Width:'1752mm',Height:'1507mm',Wheelbase:'2651mm','Gnd Clear':'179mm','Fuel Tank':'55L','Top Speed':'195 km/h','0-100':'10.7s'},features:['10" Glass Cockpit','Wireless CarPlay','LED Matrix Lights','Travel Assist ADAS','Ventilated Seats','6 Airbags'],int:['Black Leatherette','Beige/Black Dual']},
+  {id:18,brand:'Skoda',name:'Slavia',seg:'Sedan',lux:false,fuel:'Petrol',price:10.69,ps:'₹10.69L',power:115,torque:178,eng:'1.0/1.5L TSI',trans:'Manual/AT',mileage:'19.56 kmpl',seats:5,boot:521,badge:null,sales:4,colors:[{n:'Candy White',c:'#f8f8f8'},{n:'Carbon Steel',c:'#555'},{n:'Brilliant Silver',c:'#bbb'},{n:'Tornado Red',c:'#cc1100'}],specs:{Length:'4541mm',Width:'1752mm',Height:'1487mm',Wheelbase:'2651mm','Gnd Clear':'179mm','Fuel Tank':'55L','Top Speed':'195 km/h','0-100':'10.5s'},features:['10" Virtual Cockpit','Wireless CarPlay','Ventilated Seats','Level 1 ADAS','6 Airbags','Ambient Lighting'],int:['Black Leatherette','Beige Leatherette']},
+  // COMPACT SUVs
+  {id:19,brand:'Maruti Suzuki',name:'Brezza',seg:'Compact SUV',lux:false,fuel:'Petrol/CNG',price:8.34,ps:'₹8.34L',power:103,torque:137,eng:'1.5L K15C',trans:'Manual/AT',mileage:'19.8 kmpl',seats:5,boot:328,badge:'popular',sales:18,colors:[{n:'Splendid Silver',c:'#c0c0c0'},{n:'Brave Khaki',c:'#7a6840'},{n:'Pearl Arctic White',c:'#f8f8f8'},{n:'Midnight Black',c:'#111'}],specs:{Length:'3995mm',Width:'1790mm',Height:'1635mm',Wheelbase:'2500mm','Gnd Clear':'198mm','Fuel Tank':'48L','Top Speed':'175 km/h','0-100':'11.5s'},features:['Sunroof','360° Camera','Wireless Charging','SmartPlay Pro+','6 Airbags','Connected Car Tech'],int:['Earthy Brown Fabric','Black Leatherette']},
+  {id:20,brand:'Maruti Suzuki',name:'Fronx',seg:'Compact SUV',lux:false,fuel:'Petrol',price:7.51,ps:'₹7.51L',power:90,torque:148,eng:'1.0T/1.2L',trans:'Manual/AMT/AT',mileage:'21.79 kmpl',seats:5,boot:308,badge:'new',sales:14,colors:[{n:'Pearl Arctic White',c:'#f8f8f8'},{n:'Opulent Red',c:'#cc1100'},{n:'Grandeur Grey',c:'#777'}],specs:{Length:'3995mm',Width:'1765mm',Height:'1550mm',Wheelbase:'2520mm','Gnd Clear':'190mm','Fuel Tank':'37L','Top Speed':'175 km/h','0-100':'11.2s'},features:['Sunroof','360° View Camera','SmartPlay Pro+','6 Airbags','Wireless Charging','HUD Display'],int:['Linen Beige','Black Sporty']},
+  {id:21,brand:'Hyundai',name:'Venue',seg:'Compact SUV',lux:false,fuel:'Petrol/Diesel/CNG',price:7.94,ps:'₹7.94L',power:120,torque:172,eng:'1.0T/1.5L',trans:'Manual/DCT/AMT',mileage:'18.15 kmpl',seats:5,boot:350,badge:'popular',sales:16,colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Ranger Khaki',c:'#7a6840'},{n:'Titan Grey',c:'#555'},{n:'Denim Blue',c:'#334488'}],specs:{Length:'3995mm',Width:'1770mm',Height:'1617mm',Wheelbase:'2500mm','Gnd Clear':'195mm','Fuel Tank':'45L','Top Speed':'175 km/h','0-100':'10.2s'},features:['BlueLink 60 Features','8" HD Touchscreen','Bose Sound','Ventilated Seats','Level 2 ADAS','Air Purifier'],int:['Black Leatherette','Taupe Leatherette']},
+  {id:22,brand:'Hyundai',name:'Creta',seg:'Compact SUV',lux:false,fuel:'Petrol/Diesel',price:11.00,ps:'₹11.00L',power:115,torque:144,eng:'1.5L',trans:'Manual/CVT/DCT',mileage:'17.4 kmpl',seats:5,boot:433,badge:'popular',sales:25,colors:[{n:'Atlas White',c:'#f8f8f8'},{n:'Ranger Khaki',c:'#7a6840'},{n:'Abyss Black',c:'#111'},{n:'Fiery Red',c:'#cc1100'},{n:'Typhoon Silver',c:'#aaa'},{n:'Robust Emerald',c:'#006633'}],specs:{Length:'4300mm',Width:'1790mm',Height:'1635mm',Wheelbase:'2610mm','Gnd Clear':'190mm','Fuel Tank':'50L','Top Speed':'185 km/h','0-100':'10.1s'},features:['Panoramic Sunroof','360° Camera','Bose 8-Speaker','Level 2 ADAS','Ventilated Seats','Wireless CarPlay'],int:['Black Leather','Brown Leather','Beige Leatherette']},
+  {id:23,brand:'Kia',name:'Sonet',seg:'Compact SUV',lux:false,fuel:'Petrol/Diesel/CNG',price:7.99,ps:'₹7.99L',power:120,torque:172,eng:'1.0T/1.5D',trans:'Manual/DCT/AMT',mileage:'18.4 kmpl',seats:5,boot:392,badge:null,sales:12,colors:[{n:'Glacier White Pearl',c:'#f8f8f8'},{n:'Intense Red',c:'#cc1100'},{n:'Sparkling Silver',c:'#bbb'},{n:'Aurora Black Pearl',c:'#111'}],specs:{Length:'3995mm',Width:'1790mm',Height:'1642mm',Wheelbase:'2500mm','Gnd Clear':'211mm','Fuel Tank':'45L','Top Speed':'175 km/h','0-100':'10.1s'},features:['10.25" Infotainment','Bose Sound','Ventilated Seats','Air Purifier','ADAS Level 1','OTA Updates'],int:['Black Leatherette','Beige Leatherette']},
+  {id:24,brand:'Kia',name:'Syros',seg:'Compact SUV',lux:false,fuel:'Petrol/Diesel',price:8.99,ps:'₹8.99L',power:120,torque:172,eng:'1.0T/1.5D',trans:'Manual/DCT/AT',mileage:'18.1 kmpl',seats:5,boot:465,badge:'new',sales:9,colors:[{n:'Glacier White Pearl',c:'#f8f8f8'},{n:'Intense Red',c:'#cc1100'},{n:'Imperial Blue',c:'#002288'},{n:'Aurora Black Pearl',c:'#111'}],specs:{Length:'4000mm',Width:'1790mm',Height:'1660mm',Wheelbase:'2550mm','Gnd Clear':'195mm','Fuel Tank':'45L','Top Speed':'175 km/h','0-100':'10.3s'},features:['Panoramic Sunroof','65W Fast Charge','Bose 8-Speaker','Level 2 ADAS','10.25" Curved Display','OTA Updates'],int:['Black Sport','Beige Premium','Two-tone Black/Lime']},
+  {id:25,brand:'Kia',name:'Seltos',seg:'Compact SUV',lux:false,fuel:'Petrol/Diesel',price:10.99,ps:'₹10.99L',power:115,torque:144,eng:'1.5L',trans:'Manual/CVT/DCT',mileage:'17.7 kmpl',seats:5,boot:433,badge:'popular',sales:15,colors:[{n:'Glacier White Pearl',c:'#f8f8f8'},{n:'Intense Red',c:'#cc1100'},{n:'Moss Green',c:'#446633'},{n:'Gravity Grey',c:'#555'},{n:'Aurora Black Pearl',c:'#111'}],specs:{Length:'4315mm',Width:'1800mm',Height:'1645mm',Wheelbase:'2610mm','Gnd Clear':'190mm','Fuel Tank':'50L','Top Speed':'185 km/h','0-100':'10.3s'},features:['Panoramic Display 26"','Bose 8-Speaker','65W Fast Charging','Ventilated Seats','Level 2 ADAS','OTA Updates'],int:['Black Nappa Leather','Beige Nappa Leather','Black/Ivory Dual']},
+  {id:26,brand:'Tata',name:'Punch',seg:'Micro SUV',lux:false,fuel:'Petrol/CNG',price:5.95,ps:'₹5.95L',power:86,torque:113,eng:'1.2L Revotron',trans:'Manual/AMT',mileage:'18.82 kmpl',seats:5,boot:366,badge:'popular',sales:21,colors:[{n:'Opal White',c:'#f8f8f8'},{n:'Tornado Blue',c:'#0033aa'},{n:'Meteor Bronze',c:'#885522'},{n:'Daytona Grey',c:'#555'},{n:'Flame Red',c:'#cc1100'}],specs:{Length:'3827mm',Width:'1742mm',Height:'1615mm',Wheelbase:'2445mm','Gnd Clear':'187mm','Fuel Tank':'37L','Top Speed':'155 km/h','0-100':'13.5s'},features:['10.25" Infotainment','Terrain Modes','5-star NCAP','iRA Connected','Auto Headlamps','Harman Audio'],int:['Oyster White','Charcoal Black','Desert Sand Dual']},
+  {id:27,brand:'Tata',name:'Nexon',seg:'Compact SUV',lux:false,fuel:'Petrol/Diesel',price:8.10,ps:'₹8.10L',power:120,torque:170,eng:'1.2T/1.5D',trans:'Manual/AMT/DCA',mileage:'17.5 kmpl',seats:5,boot:350,badge:'popular',sales:19,colors:[{n:'Flame Red',c:'#cc1100'},{n:'Tri-Arrow Blue',c:'#003388'},{n:'Pristine White',c:'#f8f8f8'},{n:'Daytona Grey',c:'#555'},{n:'Midnight Plum',c:'#442244'}],specs:{Length:'3994mm',Width:'1811mm',Height:'1606mm',Wheelbase:'2498mm','Gnd Clear':'209mm','Fuel Tank':'44L','Top Speed':'180 km/h','0-100':'9.9s'},features:['ADAS Level 2','Panoramic Sunroof','JBL 9-Speaker','Air Purifier','iRA Connected','Wireless Charging'],int:['Black Leatherette','Charcoal/Ivory Leatherette','Brown Leatherette']},
+  {id:28,brand:'Mahindra',name:'XUV300',seg:'Compact SUV',lux:false,fuel:'Petrol/Diesel',price:7.99,ps:'₹7.99L',power:110,torque:200,eng:'1.2T/1.5D',trans:'Manual/AMT',mileage:'17 kmpl',seats:5,boot:257,badge:null,sales:7,colors:[{n:'Pearl White',c:'#f8f8f8'},{n:'Red Rage',c:'#cc1100'},{n:'Aquamarine Blue',c:'#007788'},{n:'Napoli Black',c:'#111'}],specs:{Length:'3985mm',Width:'1821mm',Height:'1627mm',Wheelbase:'2600mm','Gnd Clear':'180mm','Fuel Tank':'42L','Top Speed':'170 km/h','0-100':'10.9s'},features:['Sunroof','7 Airbags','Heated Seats','Dual-Zone AC','Rear Disc Brakes','Level 2 ADAS'],int:['Red/Black Sport','Ivory/Black Premium']},
+  {id:29,brand:'Renault',name:'Duster',seg:'Compact SUV',lux:false,fuel:'Petrol/Diesel',price:10.49,ps:'₹10.49L',power:130,torque:250,eng:'1.3T/1.5D',trans:'Manual/CVT',mileage:'16.8 kmpl',seats:5,boot:472,badge:'new',sales:8,colors:[{n:'Arctic White',c:'#f8f8f8'},{n:'Iron Cast',c:'#444'},{n:'Slate Blue',c:'#334488'},{n:'Bronze Metal',c:'#886633'}],specs:{Length:'4341mm',Width:'1804mm',Height:'1636mm',Wheelbase:'2656mm','Gnd Clear':'210mm','Fuel Tank':'50L','Top Speed':'185 km/h','0-100':'10.2s'},features:['10" Infotainment','4WD Option','ADAS Level 2','Panoramic Roof','360° Camera','Wireless Charging'],int:['Dark Brown Leather','Black Fabric']},
+  {id:30,brand:'Nissan',name:'Magnite',seg:'Compact SUV',lux:false,fuel:'Petrol',price:6.00,ps:'₹6.00L',power:100,torque:160,eng:'1.0T',trans:'Manual/CVT',mileage:'20 kmpl',seats:5,boot:336,badge:null,sales:7,colors:[{n:'Pearl White',c:'#f8f8f8'},{n:'Blade Silver',c:'#bbb'},{n:'Fiery Red',c:'#cc1100'},{n:'Amber Orange',c:'#cc7700'}],specs:{Length:'3994mm',Width:'1758mm',Height:'1572mm',Wheelbase:'2500mm','Gnd Clear':'205mm','Fuel Tank':'40L','Top Speed':'165 km/h','0-100':'10.6s'},features:['8" Touchscreen','360° Monitor','ADAS Level 1','Driver Attention Alert','Wireless Charger','6 Airbags'],int:['Black Interior','Copper Black Dual']},
+  {id:31,brand:'Skoda',name:'Kushaq',seg:'Compact SUV',lux:false,fuel:'Petrol',price:11.89,ps:'₹11.89L',power:115,torque:178,eng:'1.0/1.5L TSI',trans:'Manual/AT/DSG',mileage:'16.5 kmpl',seats:5,boot:385,badge:null,sales:5,colors:[{n:'Candy White',c:'#f8f8f8'},{n:'Carbon Steel',c:'#555'},{n:'Brilliant Silver',c:'#bbb'},{n:'Tornado Red',c:'#cc1100'}],specs:{Length:'4225mm',Width:'1760mm',Height:'1612mm',Wheelbase:'2651mm','Gnd Clear':'188mm','Fuel Tank':'50L','Top Speed':'190 km/h','0-100':'10.5s'},features:['10" Virtual Cockpit','Wireless CarPlay','Sunroof','ADAS Level 1','6 Airbags','Ambient Lighting'],int:['Black Leatherette','Beige Leatherette','Black/White']},
+  {id:32,brand:'Skoda',name:'Kylaq',seg:'Compact SUV',lux:false,fuel:'Petrol',price:7.89,ps:'₹7.89L',power:115,torque:178,eng:'1.0L TSI',trans:'Manual/AT',mileage:'19.5 kmpl',seats:5,boot:446,badge:'new',sales:7,colors:[{n:'Candy White',c:'#f8f8f8'},{n:'Carbon Steel',c:'#555'},{n:'Brilliant Silver',c:'#bbb'},{n:'Tornado Red',c:'#cc1100'}],specs:{Length:'3997mm',Width:'1783mm',Height:'1619mm',Wheelbase:'2566mm','Gnd Clear':'189mm','Fuel Tank':'40L','Top Speed':'185 km/h','0-100':'11s'},features:['10" Infotainment','Wireless CarPlay','6 Airbags','ADAS Level 1','Sunroof','LED Matrix Lights'],int:['Black Fabric','Black Leatherette']},
+  {id:33,brand:'Volkswagen',name:'Taigun',seg:'Compact SUV',lux:false,fuel:'Petrol',price:11.65,ps:'₹11.65L',power:115,torque:178,eng:'1.0/1.5L TSI',trans:'Manual/AT/DSG',mileage:'17.33 kmpl',seats:5,boot:385,badge:null,sales:6,colors:[{n:'Candy White',c:'#f8f8f8'},{n:'Deep Black Pearl',c:'#111'},{n:'Reflex Silver',c:'#bbb'},{n:'Kings Red',c:'#aa1100'}],specs:{Length:'4221mm',Width:'1760mm',Height:'1612mm',Wheelbase:'2651mm','Gnd Clear':'188mm','Fuel Tank':'50L','Top Speed':'195 km/h','0-100':'10.2s'},features:['10" Digital Cockpit','Wireless CarPlay','Sunroof','LED Ambient Light','Travel Assist ADAS','6 Airbags'],int:['Grey Leatherette','Black Leatherette','Black/White Dual']},
+  {id:34,brand:'Honda',name:'Elevate',seg:'Compact SUV',lux:false,fuel:'Petrol',price:11.69,ps:'₹11.69L',power:121,torque:145,eng:'1.5L i-VTEC',trans:'Manual/CVT',mileage:'15.91 kmpl',seats:5,boot:458,badge:null,sales:8,colors:[{n:'Platinum White',c:'#f8f8f8'},{n:'Radiant Red',c:'#cc1100'},{n:'Meteoroid Grey',c:'#777'},{n:'Stellar Blue',c:'#002288'}],specs:{Length:'4312mm',Width:'1790mm',Height:'1650mm',Wheelbase:'2650mm','Gnd Clear':'220mm','Fuel Tank':'40L','Top Speed':'180 km/h','0-100':'11.2s'},features:['Honda Sensing ADAS','LaneWatch Cam','Sunroof','Wireless Charging','V-TEC Turbo (top)','6 Airbags'],int:['Black Leather','Beige Leatherette']},
+  {id:35,brand:'Citroën',name:'Basalt',seg:'Compact SUV',lux:false,fuel:'Petrol',price:7.99,ps:'₹7.99L',power:100,torque:205,eng:'1.2L Turbo',trans:'Manual/AT',mileage:'18.0 kmpl',seats:5,boot:470,badge:'new',sales:5,colors:[{n:'Platinum Grey',c:'#888'},{n:'Pearl White',c:'#f8f8f8'},{n:'Mica Blue',c:'#334488'},{n:'Ember Orange',c:'#cc5500'}],specs:{Length:'4352mm',Width:'1765mm',Height:'1593mm',Wheelbase:'2651mm','Gnd Clear':'180mm','Fuel Tank':'45L','Top Speed':'170 km/h','0-100':'11s'},features:['10.25" Infotainment','ADAS Level 1','Panoramic Glass Roof','6 Airbags','ESC','Wireless Charger'],int:['Pearl White Interior','Grey Interior']},
+  // SUVS
+  {id:36,brand:'Maruti Suzuki',name:'Grand Vitara',seg:'SUV',lux:false,fuel:'Petrol/Hybrid',price:11.00,ps:'₹11.00L',power:103,torque:137,eng:'1.5L+Hybrid',trans:'Manual/AT',mileage:'21.11 kmpl',seats:5,boot:373,badge:'popular',sales:16,colors:[{n:'Splendid Silver',c:'#c0c0c0'},{n:'Kinetic Yellow',c:'#ffcc00'},{n:'Pearl Arctic White',c:'#f8f8f8'},{n:'Midnight Black',c:'#111'}],specs:{Length:'4345mm',Width:'1795mm',Height:'1645mm',Wheelbase:'2600mm','Gnd Clear':'210mm','Fuel Tank':'45L','Top Speed':'180 km/h','0-100':'10.5s'},features:['Panoramic Sunroof','Hybrid Powertrain','360° View','HUD Display','9" Toyota Connect','AllGrip AWD Option'],int:['Black Leather','Brown Leather','Ivory Dual-tone']},
+  {id:37,brand:'Hyundai',name:'Alcazar',seg:'SUV',lux:false,fuel:'Petrol/Diesel',price:14.99,ps:'₹14.99L',power:159,torque:253,eng:'1.5T/2.0L',trans:'Manual/AT',mileage:'14.5 kmpl',seats:6,boot:180,badge:null,sales:8,colors:[{n:'Atlas White',c:'#f8f8f8'},{n:'Abyss Black',c:'#111'},{n:'Typhoon Silver',c:'#aaa'},{n:'Denim Blue',c:'#334488'}],specs:{Length:'4500mm',Width:'1790mm',Height:'1675mm',Wheelbase:'2760mm','Gnd Clear':'200mm','Fuel Tank':'50L','Top Speed':'185 km/h','0-100':'9.8s'},features:['Panoramic Sunroof','Level 2 ADAS','Bose 8-Speaker','6/7 Seater','Ventilated Captain Seats','Rear Sunblind'],int:['Black/Red Sport','Beige/Brown Luxury']},
+  {id:38,brand:'Toyota',name:'Hyryder',seg:'SUV',lux:false,fuel:'Petrol/Hybrid',price:11.14,ps:'₹11.14L',power:115,torque:137,eng:'1.5L Hybrid',trans:'e-CVT/Manual',mileage:'27.97 kmpl',seats:5,boot:373,badge:'popular',sales:14,colors:[{n:'Celestial Black',c:'#111'},{n:'Phantom Brown',c:'#5a3018'},{n:'Heavy Metal Grey',c:'#777'},{n:'Pearl White',c:'#f8f8f8'}],specs:{Length:'4365mm',Width:'1795mm',Height:'1635mm',Wheelbase:'2600mm','Gnd Clear':'215mm','Fuel Tank':'45L','Top Speed':'180 km/h','0-100':'10.5s'},features:['Strong Hybrid','360° View Cam','9" Toyota Connect','Ventilated Seats','6 Airbags','AllGrip AWD'],int:['Black Leather','Cognac Brown Leather','White Interior']},
+  {id:39,brand:'Mahindra',name:'Scorpio-N',seg:'SUV',lux:false,fuel:'Petrol/Diesel',price:13.99,ps:'₹13.99L',power:175,torque:370,eng:'2.0T/2.2D',trans:'Manual/AT',mileage:'15.2 kmpl',seats:6,boot:218,badge:'popular',sales:16,colors:[{n:'Dazzling Silver',c:'#c0c0c0'},{n:'Deep Forest',c:'#1a3322'},{n:'Everest White',c:'#f8f8f8'},{n:'Red Rage',c:'#cc1100'},{n:'Napoli Black',c:'#111'}],specs:{Length:'4662mm',Width:'1917mm',Height:'1857mm',Wheelbase:'2750mm','Gnd Clear':'200mm','Fuel Tank':'60L','Top Speed':'195 km/h','0-100':'9.2s'},features:['4WD with AWD','AdrenoX Connect','Sony 9-Speaker','Panoramic Sunroof','Air Suspension (Z8L)','6 Airbags'],int:['Ebony/Redwood','Deep Sea Teal','Chestnut Brown']},
+  {id:40,brand:'Mahindra',name:'XUV700',seg:'SUV',lux:false,fuel:'Petrol/Diesel',price:13.99,ps:'₹13.99L',power:200,torque:450,eng:'2.0T/2.2D',trans:'Manual/AT',mileage:'14.5 kmpl',seats:5,boot:354,badge:'popular',sales:14,colors:[{n:'Electric Blue',c:'#0033cc'},{n:'Dazzling Silver',c:'#bbb'},{n:'Red Rage',c:'#cc1100'},{n:'Everest White',c:'#f8f8f8'},{n:'Napoli Black',c:'#111'}],specs:{Length:'4695mm',Width:'1890mm',Height:'1755mm',Wheelbase:'2750mm','Gnd Clear':'200mm','Fuel Tank':'60L','Top Speed':'200 km/h','0-100':'8.5s'},features:['AdrenoX AI System','Level 2 ADAS','Dolby Atmos Sound','Panoramic Sunroof','7 Airbags','4WD Available'],int:['Ebony/Dual Tone','Blackstone Edition','Teak Wood Trim']},
+  {id:41,brand:'Mahindra',name:'Thar',seg:'Off-road SUV',lux:false,fuel:'Petrol/Diesel',price:10.00,ps:'₹10.00L',power:130,torque:320,eng:'2.2L mHawk/2.0T',trans:'Manual/AT',mileage:'15.2 kmpl',seats:4,boot:230,badge:'popular',sales:15,colors:[{n:'Galaxy Grey',c:'#777'},{n:'Blazing Bronze',c:'#aa6622'},{n:'Napoli Black',c:'#111'},{n:'Rocky Beige',c:'#c0aa88'},{n:'Red Rage',c:'#cc1100'}],specs:{Length:'3985mm',Width:'1820mm',Height:'1844mm',Wheelbase:'2450mm','Gnd Clear':'226mm','Fuel Tank':'57L','Top Speed':'155 km/h','0-100':'12.5s'},features:['4WD with Low Range','Adventure Stats','9" Touchscreen','6 Airbags','Electronic Diff Lock','Rock Crawl Mode'],int:['Earthy Brown','Napoli Black','Adventure Grey']},
+  {id:42,brand:'MG',name:'Hector',seg:'SUV',lux:false,fuel:'Petrol/Diesel',price:14.73,ps:'₹14.73L',power:143,torque:250,eng:'1.5T/2.0D',trans:'Manual/CVT/DCT',mileage:'15.81 kmpl',seats:5,boot:587,badge:null,sales:7,colors:[{n:'Starry Black',c:'#111'},{n:'Snowflake White',c:'#f8f8f8'},{n:'Burgundy Red',c:'#881133'},{n:'Aurora Silver',c:'#bbb'}],specs:{Length:'4720mm',Width:'1835mm',Height:'1760mm',Wheelbase:'2750mm','Gnd Clear':'192mm','Fuel Tank':'60L','Top Speed':'186 km/h','0-100':'10.5s'},features:['14" Portrait Touchscreen','i-SMART AI','ADAS','Panoramic Sunroof','Wireless Charger','Infinity Sound'],int:['Black Leatherette','Sangria Red Leather','Cream/Black Dual']},
+  {id:43,brand:'Tata',name:'Harrier',seg:'SUV',lux:false,fuel:'Diesel',price:15.49,ps:'₹15.49L',power:170,torque:350,eng:'2.0L Kryotec',trans:'Manual/AT',mileage:'14.6 kmpl',seats:5,boot:425,badge:null,sales:10,colors:[{n:'Orcus White',c:'#f8f8f8'},{n:'Lunar Slate',c:'#666'},{n:'Oberon Black',c:'#111'},{n:'Calypso Red',c:'#aa1100'}],specs:{Length:'4598mm',Width:'1894mm',Height:'1706mm',Wheelbase:'2741mm','Gnd Clear':'205mm','Fuel Tank':'50L','Top Speed':'190 km/h','0-100':'10.8s'},features:['iRA 2.0 Connected','JBL 9-Speaker','Level 2 ADAS','Panoramic Sunroof','Electronic Terrain','Powered Tailgate'],int:['Oyster White Leather','Black Leather','Brown Leather']},
+  {id:44,brand:'Tata',name:'Safari',seg:'SUV',lux:false,fuel:'Diesel',price:16.19,ps:'₹16.19L',power:170,torque:350,eng:'2.0L Kryotec',trans:'Manual/AT',mileage:'14.08 kmpl',seats:6,boot:73,badge:null,sales:8,colors:[{n:'Orcus White',c:'#f8f8f8'},{n:'Lunar Slate',c:'#666'},{n:'Oberon Black',c:'#111'},{n:'Seaweed Green',c:'#226633'}],specs:{Length:'4661mm',Width:'1894mm',Height:'1786mm',Wheelbase:'2741mm','Gnd Clear':'205mm','Fuel Tank':'50L','Top Speed':'185 km/h','0-100':'11.5s'},features:['Panoramic Sunroof','iRA Connected','JBL 9-Speaker','Terrain Modes','Massage Seats','6/7 Seater'],int:['Oyster White','Black/Oyster Dual','Brown Leather']},
+  {id:45,brand:'Tata',name:'Sierra',seg:'SUV',lux:false,fuel:'Petrol/Diesel',price:11.49,ps:'₹11.49L',power:170,torque:350,eng:'1.5T/2.0D',trans:'Manual/AT',mileage:'15.5 kmpl',seats:5,boot:440,badge:'new',sales:7,colors:[{n:'Pure White',c:'#f8f8f8'},{n:'Daytona Grey',c:'#555'},{n:'Sierra Crimson',c:'#881100'},{n:'Burnished Copper',c:'#aa5522'}],specs:{Length:'4340mm',Width:'1825mm',Height:'1650mm',Wheelbase:'2530mm','Gnd Clear':'200mm','Fuel Tank':'50L','Top Speed':'185 km/h','0-100':'9.9s'},features:['ADAS Level 2','Dual-pane Panoramic Roof','JBL Audio','iRA Connected','Terrain Modes','Wireless Charging'],int:['Noir Black','Ivory White','Caramel Brown']},
+  {id:46,brand:'Kia',name:'Carens',seg:'MPV',lux:false,fuel:'Petrol/Diesel',price:10.52,ps:'₹10.52L',power:115,torque:144,eng:'1.5L',trans:'Manual/DCT/AT',mileage:'16.5 kmpl',seats:6,boot:216,badge:null,sales:10,colors:[{n:'Glacier White Pearl',c:'#f8f8f8'},{n:'Aurora Black Pearl',c:'#111'},{n:'Sparkling Silver',c:'#bbb'},{n:'Imperial Blue',c:'#002288'}],specs:{Length:'4540mm',Width:'1800mm',Height:'1708mm',Wheelbase:'2780mm','Gnd Clear':'195mm','Fuel Tank':'45L','Top Speed':'180 km/h','0-100':'11s'},features:['10.25" Infotainment','Bose Sound','Ventilated Seats','6 Airbags','OTA Updates','Wireless Charging'],int:['Black/Beige','Black Fabric','7-seat Config']},
+  {id:47,brand:'Toyota',name:'Innova Crysta',seg:'MPV',lux:false,fuel:'Diesel',price:19.77,ps:'₹19.77L',power:150,torque:360,eng:'2.4L GD',trans:'Manual/AT',mileage:'12.53 kmpl',seats:7,boot:300,badge:null,sales:11,colors:[{n:'White Pearl',c:'#f8f8f8'},{n:'Attitude Black',c:'#111'},{n:'Avant-Garde Bronze',c:'#886633'},{n:'Silver Metallic',c:'#bbb'}],specs:{Length:'4735mm',Width:'1830mm',Height:'1795mm',Wheelbase:'2750mm','Gnd Clear':'178mm','Fuel Tank':'55L','Top Speed':'175 km/h','0-100':'12.1s'},features:['Captain Seats','Dual Zone AC','Android Auto','Ambient Lighting','Rear Entertainment','360° Camera'],int:['Ivory Leather','Black Leather']},
+  {id:48,brand:'Toyota',name:'Innova Hycross',seg:'MPV',lux:false,fuel:'Petrol/Hybrid',price:19.77,ps:'₹19.77L',power:186,torque:206,eng:'2.0L TNGA Hybrid',trans:'e-CVT',mileage:'21.1 kmpl',seats:7,boot:216,badge:'popular',sales:9,colors:[{n:'Super White',c:'#f8f8f8'},{n:'Black Mica',c:'#111'},{n:'Silver Metallic',c:'#bbb'},{n:'Gray Metallic',c:'#777'}],specs:{Length:'4755mm',Width:'1850mm',Height:'1795mm',Wheelbase:'2850mm','Gnd Clear':'185mm','Fuel Tank':'52L','Top Speed':'180 km/h','0-100':'11.8s'},features:['Otto-cycle Hybrid','Panoramic Roof','JBL 11-Speaker','Ottoman Seats','Digital Cluster','TNGA Platform'],int:['Hazel Brown Leather','Black Leather','Ivory Premium']},
+  {id:49,brand:'Mahindra',name:'Bolero',seg:'SUV',lux:false,fuel:'Diesel',price:9.76,ps:'₹9.76L',power:75,torque:210,eng:'1.5L mFalcon',trans:'Manual',mileage:'15.96 kmpl',seats:7,boot:200,badge:null,sales:14,colors:[{n:'Diamond White',c:'#f8f8f8'},{n:'Napoli Black',c:'#111'},{n:'Bold Gold',c:'#ccaa00'}],specs:{Length:'3765mm',Width:'1830mm',Height:'1925mm',Wheelbase:'2680mm','Gnd Clear':'180mm','Fuel Tank':'70L','Top Speed':'135 km/h','0-100':'17s'},features:['Power Steering','Rear AC Vents','Adjustable 3rd Row','Heavy Duty Chassis','4WD Available','Workhorse Torque'],int:['Beige Fabric','Grey Fabric']},
+  // ELECTRIC
+  {id:50,brand:'Tata',name:'Punch EV',seg:'Electric Hatchback',lux:false,fuel:'Electric',price:9.99,ps:'₹9.99L',power:122,torque:190,eng:'Electric',trans:'Single Speed',mileage:'421 km range',seats:5,boot:366,badge:'electric',sales:11,colors:[{n:'Pristine White',c:'#f8f8f8'},{n:'Daytona Grey',c:'#555'},{n:'Empowered Maroon',c:'#661122'},{n:'Tornado Blue',c:'#003366'}],specs:{Length:'3827mm',Width:'1742mm',Height:'1615mm',Wheelbase:'2445mm','Gnd Clear':'190mm','Battery':'35 kWh','Top Speed':'140 km/h','0-100':'9.5s'},features:['Arcade.ev App Suite','iRA Connected','V2L Support','Terrain Modes','Free Home Charger','5-Star Safety'],int:['Pristine White','Charcoal Black']},
+  {id:51,brand:'Tata',name:'Nexon EV',seg:'Electric SUV',lux:false,fuel:'Electric',price:14.49,ps:'₹14.49L',power:143,torque:215,eng:'Electric',trans:'Single Speed',mileage:'465 km range',seats:5,boot:350,badge:'electric',sales:13,colors:[{n:'Pristine White',c:'#f8f8f8'},{n:'Fearless Purple',c:'#8833cc'},{n:'Daytona Grey',c:'#555'},{n:'Foliage Green',c:'#226622'}],specs:{Length:'3994mm',Width:'1811mm',Height:'1606mm',Wheelbase:'2498mm','Gnd Clear':'209mm','Battery':'40.5 kWh','Top Speed':'150 km/h','0-100':'8.9s'},features:['40.5 kWh Battery','DC Fast Charging 50kW','V2L Support','iRA 2.0 Connected','Regen Braking Levels','ADAS Level 2'],int:['Charcoal Interior','Pristine White Interior']},
+  {id:52,brand:'MG',name:'Windsor EV',seg:'Electric SUV',lux:false,fuel:'Electric',price:14.00,ps:'₹14.00L',power:136,torque:200,eng:'Electric',trans:'Single Speed',mileage:'331 km range',seats:5,boot:604,badge:'electric',sales:8,colors:[{n:'Candy White',c:'#f8f8f8'},{n:'Aurora Silver',c:'#bbb'},{n:'Starry Black',c:'#111'},{n:'Turquoise Blue',c:'#007799'}],specs:{Length:'4422mm',Width:'1836mm',Height:'1677mm',Wheelbase:'2700mm','Gnd Clear':'186mm','Battery':'38 kWh','Top Speed':'160 km/h','0-100':'8.3s'},features:['BaaS Battery-as-a-Service','ADAS Level 2','Bose Sound','Infinity Glass Roof','V2L Support','Ambient Lighting'],int:['Sand Dune Interior','Ebony Interior']},
+  {id:53,brand:'MG',name:'ZS EV',seg:'Electric SUV',lux:false,fuel:'Electric',price:18.98,ps:'₹18.98L',power:176,torque:280,eng:'Electric',trans:'Single Speed',mileage:'461 km range',seats:5,boot:448,badge:'electric',sales:5,colors:[{n:'Candy White',c:'#f8f8f8'},{n:'Starry Black',c:'#111'},{n:'Aurora Silver',c:'#bbb'}],specs:{Length:'4314mm',Width:'1809mm',Height:'1649mm',Wheelbase:'2585mm','Gnd Clear':'177mm','Battery':'50.3 kWh','Top Speed':'175 km/h','0-100':'8.5s'},features:['DC Fast Charge 76kW','i-SMART Connected','360° Camera','ADAS Suite','Wireless CarPlay','8.8" Cluster'],int:['Ivory Interior','Black Interior']},
+  {id:54,brand:'Maruti Suzuki',name:'e Vitara',seg:'Electric SUV',lux:false,fuel:'Electric',price:17.49,ps:'₹17.49L',power:173,torque:300,eng:'Electric',trans:'Single Speed',mileage:'500 km range',seats:5,boot:490,badge:'electric',sales:4,colors:[{n:'Pearl Arctic White',c:'#f8f8f8'},{n:'Splendid Silver',c:'#bbb'},{n:'Grandeur Grey',c:'#777'},{n:'Pearl Nexa Blue',c:'#003388'}],specs:{Length:'4275mm',Width:'1800mm',Height:'1635mm',Wheelbase:'2700mm','Gnd Clear':'200mm','Battery':'61 kWh','Top Speed':'165 km/h','0-100':'8.4s'},features:['DC Fast Charging','ADAS Level 2','AllGrip AWD Option','12.3" HUD Display','Suzuki Connect','800V Ready'],int:['Black Premium','Brown/Black Dual-tone']},
+  {id:55,brand:'Mahindra',name:'BE 6',seg:'Electric SUV',lux:false,fuel:'Electric',price:18.90,ps:'₹18.90L',power:231,torque:380,eng:'Electric RWD',trans:'Single Speed',mileage:'557 km range',seats:5,boot:455,badge:'electric',sales:5,colors:[{n:'Cobalt Blue',c:'#002288'},{n:'Stealth Black',c:'#111'},{n:'Arctic Silver',c:'#bbb'},{n:'Electric Green',c:'#007733'}],specs:{Length:'4371mm',Width:'1900mm',Height:'1635mm',Wheelbase:'2775mm','Gnd Clear':'207mm','Battery':'79 kWh','Top Speed':'200 km/h','0-100':'6.7s'},features:['79 kWh Battery','DC Fast 175kW','ADAS Level 2','12.3" Curved Display','Infinity Glass Roof','V2L Support'],int:['Black Sport Interior','White Premium Interior']},
+  {id:56,brand:'Mahindra',name:'XEV 9e',seg:'Electric SUV',lux:false,fuel:'Electric',price:21.90,ps:'₹21.90L',power:286,torque:380,eng:'Electric AWD',trans:'Single Speed',mileage:'656 km range',seats:5,boot:663,badge:'electric',sales:3,colors:[{n:'Stealth Black',c:'#111'},{n:'Arctic Silver',c:'#bbb'},{n:'Cobalt Blue',c:'#002288'},{n:'Desert Gold',c:'#bb9933'}],specs:{Length:'4789mm',Width:'1906mm',Height:'1676mm',Wheelbase:'2775mm','Gnd Clear':'226mm','Battery':'79 kWh','Top Speed':'201 km/h','0-100':'5.3s'},features:['E-AWD System','V2L & V2V','ADAS Level 3 Ready','Dolby Atmos 16-Speaker','AR HUD','Tri-Screen 12.3" Displays'],int:['Black Diamond Interior','Ivory Moonlight Interior']},
+  {id:57,brand:'Kia',name:'EV6',seg:'Electric Crossover',lux:false,fuel:'Electric',price:60.97,ps:'₹60.97L',power:229,torque:350,eng:'Electric AWD',trans:'Single Speed',mileage:'528 km range',seats:5,boot:480,badge:'electric',sales:2,colors:[{n:'Glacier White Pearl',c:'#f8f8f8'},{n:'Aurora Black Pearl',c:'#111'},{n:'Moon Silver',c:'#bbb'},{n:'Runway Red',c:'#aa1100'},{n:'Yacht Blue',c:'#002266'}],specs:{Length:'4695mm',Width:'1890mm',Height:'1550mm',Wheelbase:'2900mm','Gnd Clear':'160mm','Battery':'77.4 kWh','Top Speed':'188 km/h','0-100':'5.1s'},features:['800V Ultra-Fast Charging','V2L Technology','Panoramic Curved Display','Meridian Sound','AR HUD','GT-Line Aero Kit'],int:['Glacier Interior','Night Sky Interior']},
+  {id:58,brand:'Hyundai',name:'IONIQ 5',seg:'Electric SUV',lux:false,fuel:'Electric',price:55.70,ps:'₹55.70L',power:217,torque:350,eng:'Electric',trans:'Single Speed',mileage:'631 km range',seats:5,boot:527,badge:'electric',sales:2,colors:[{n:'Gravity Gold Matte',c:'#b8a040'},{n:'Digital Teal Green',c:'#007766'},{n:'Polar White',c:'#f8f8f8'},{n:'Phantom Black',c:'#111'}],specs:{Length:'4635mm',Width:'1890mm',Height:'1605mm',Wheelbase:'3000mm','Gnd Clear':'160mm','Battery':'72.6 kWh','Top Speed':'185 km/h','0-100':'5.1s'},features:['800V Ultra-Fast Charging','V2L (Vehicle-to-Load)','AR HUD','Curved 12" Display x2','Remote Smart Parking','Solar Roof (optional)'],int:['Relaxation Lounge Grey','Relaxation Lounge White']},
+  // MISC SUVs
+  {id:59,brand:'Jeep',name:'Compass',seg:'SUV',lux:false,fuel:'Petrol/Diesel',price:19.99,ps:'₹19.99L',power:170,torque:350,eng:'1.3T/2.0D',trans:'Manual/AT',mileage:'15.0 kmpl',seats:5,boot:438,badge:null,sales:4,colors:[{n:'Bright White',c:'#f8f8f8'},{n:'Diamond Black',c:'#111'},{n:'Granite Crystal',c:'#777'},{n:'Colorado Red',c:'#cc1100'}],specs:{Length:'4395mm',Width:'1818mm',Height:'1637mm',Wheelbase:'2636mm','Gnd Clear':'203mm','Fuel Tank':'60L','Top Speed':'185 km/h','0-100':'9.9s'},features:['UConnect 10.1" System','Alpine Premium Sound','Adaptive Cruise Control','360° Camera','4x4 Selec-Terrain','Level 2 ADAS'],int:['Black Leather','Ski Grey Leather']},
+  {id:60,brand:'Jeep',name:'Wrangler',seg:'Off-road SUV',lux:false,fuel:'Petrol',price:68.90,ps:'₹68.90L',power:272,torque:400,eng:'2.0L Turbo',trans:'Automatic 8-Spd',mileage:'10.5 kmpl',seats:5,boot:142,badge:null,sales:1,colors:[{n:'Bright White',c:'#f8f8f8'},{n:'Black',c:'#111'},{n:'Firecracker Red',c:'#cc1100'},{n:'Sarge Green',c:'#4a6233'}],specs:{Length:'4305mm',Width:'1874mm',Height:'1878mm',Wheelbase:'2459mm','Gnd Clear':'274mm','Fuel Tank':'70L','Top Speed':'190 km/h','0-100':'9.3s'},features:['Dana 44 Axles','Rock-Trac 4x4','Removable Doors & Roof','Off-Road Plus Modes','Trail Cam','Electronic Lockers'],int:['Black Premium','Saddle Tan Leather']},
+  {id:61,brand:'Force',name:'Gurkha',seg:'Off-road SUV',lux:false,fuel:'Diesel',price:16.75,ps:'₹16.75L',power:140,torque:320,eng:'2.6L',trans:'Manual',mileage:'12.0 kmpl',seats:4,boot:250,badge:null,sales:2,colors:[{n:'Military Green',c:'#3a5a2a'},{n:'White',c:'#f8f8f8'},{n:'Black',c:'#111'}],specs:{Length:'4110mm',Width:'1918mm',Height:'1920mm',Wheelbase:'2400mm','Gnd Clear':'230mm','Fuel Tank':'55L','Top Speed':'130 km/h','0-100':'18s'},features:['4WD Low Range','Portal Axles','360° Approach Angle','7" Touchscreen','Snorkel Ready','Locking Differentials'],int:['Olive Green Military','Black Utilitarian']},
+  {id:62,brand:'Isuzu',name:'D-Max V-Cross',seg:'Pickup Truck',lux:false,fuel:'Diesel',price:22.56,ps:'₹22.56L',power:163,torque:360,eng:'1.9L/3.0L',trans:'Manual/AT',mileage:'12.5 kmpl',seats:5,boot:null,badge:null,sales:2,colors:[{n:'Splash White',c:'#f8f8f8'},{n:'Obsidian Grey',c:'#555'},{n:'Spinel Red',c:'#882200'},{n:'Iceland Silver',c:'#bbb'}],specs:{Length:'5290mm',Width:'1860mm',Height:'1840mm',Wheelbase:'3095mm','Gnd Clear':'230mm','Fuel Tank':'76L','Top Speed':'160 km/h','0-100':'13s'},features:['4WD Hi-Lo Range','9" Touchscreen','Apple CarPlay','Rear Diff Lock','6 Airbags','Shift-on-Fly 4WD'],int:['Black Fabric','Grey/Black']},
+  // TOYOTA PREMIUM & FORTUNER
+  {id:63,brand:'Toyota',name:'Fortuner',seg:'Premium SUV',lux:false,fuel:'Petrol/Diesel',price:34.76,ps:'₹34.76L',power:201,torque:500,eng:'2.8L GD-6',trans:'Manual/AT',mileage:'10.01 kmpl',seats:7,boot:224,badge:'popular',sales:7,colors:[{n:'Super White',c:'#f8f8f8'},{n:'Attitude Black',c:'#111'},{n:'Silver Metallic',c:'#bbb'},{n:'Bronze Mica',c:'#886633'},{n:'Phantom Brown',c:'#5a3018'}],specs:{Length:'4795mm',Width:'1855mm',Height:'1835mm',Wheelbase:'2745mm','Gnd Clear':'225mm','Fuel Tank':'80L','Top Speed':'180 km/h','0-100':'10.2s'},features:['4WD with Terrain Modes','JBL 11-Speaker','Heads-Up Display','360° Camera','Ventilated Seats','Multi-Terrain Select'],int:['Black/Ivory Leather','Black Leather']},
+  {id:64,brand:'Toyota',name:'Camry',seg:'Luxury Sedan',lux:false,fuel:'Hybrid',price:48.10,ps:'₹48.10L',power:218,torque:221,eng:'2.5L Hybrid',trans:'e-CVT',mileage:'19.16 kmpl',seats:5,boot:524,badge:'luxury',sales:2,colors:[{n:'Midnight Black Metallic',c:'#111'},{n:'Platinum White Pearl',c:'#f8f8f8'},{n:'Emotional Red',c:'#cc1100'},{n:'Silver Metallic',c:'#bbb'}],specs:{Length:'4885mm',Width:'1840mm',Height:'1455mm',Wheelbase:'2825mm','Gnd Clear':'140mm','Fuel Tank':'50L','Top Speed':'200 km/h','0-100':'7.6s'},features:['Self-Charging Hybrid','JBL 9-Speaker','HUD','Ventilated Seats','360° Camera','Toyota Safety Sense'],int:['Black Leather','Ivory Premium Leather']},
+  {id:65,brand:'Toyota',name:'Vellfire',seg:'Ultra Luxury MPV',lux:false,fuel:'Hybrid',price:120.00,ps:'₹1.20Cr',power:197,torque:235,eng:'2.5L Hybrid',trans:'e-CVT',mileage:'16.5 kmpl',seats:6,boot:120,badge:'luxury',sales:1,colors:[{n:'Pearl White',c:'#f8f8f8'},{n:'Precious Silver',c:'#bbb'},{n:'Attitude Black',c:'#111'}],specs:{Length:'4995mm',Width:'1850mm',Height:'1895mm',Wheelbase:'3000mm','Gnd Clear':'160mm','Fuel Tank':'70L','Top Speed':'180 km/h','0-100':'9.2s'},features:['Executive Lounger Seats','Panoramic Roof','JBL Premium Sound','Rear Entertainment','Power Sliding Doors','Massage Seats'],int:['Ivory White Lounge','Black Executive Lounge']},
+];
+
+// ============================================================
+// LUXURY CARS DATABASE (separate array)
+// ============================================================
+const LUXURY = [
+  // BMW
+  {id:101,brand:'BMW',name:'2 Series Gran Coupe',seg:'Luxury Sedan',fuel:'Petrol',price:45.80,ps:'₹45.80L',power:192,torque:280,eng:'2.0L TwinPower',trans:'Steptronic AT',mileage:'15.8 kmpl',seats:5,boot:390,badge:'luxury',sales:3,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Mineral Grey',c:'#888'},{n:'Portimao Blue',c:'#003388'},{n:'Black Sapphire',c:'#111'}],specs:{Length:'4526mm',Width:'1800mm',Height:'1427mm',Wheelbase:'2670mm','Gnd Clear':'130mm','Fuel Tank':'54L','Top Speed':'240 km/h','0-100':'6.8s'},features:['iDrive 7.0','Harman Kardon Sound','M Sport Package','Park Distance Control','Live Cockpit Pro','Driving Assistant'],int:['Sensatec Black','Cognac Leather','Oyster White']},
+  {id:102,brand:'BMW',name:'3 Series',seg:'Luxury Sedan',fuel:'Petrol/Diesel',price:60.55,ps:'₹60.55L',power:258,torque:400,eng:'2.0L TwinPower',trans:'Steptronic AT',mileage:'14.3 kmpl',seats:5,boot:480,badge:'luxury',sales:5,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Mineral Grey',c:'#888'},{n:'Portimao Blue',c:'#003388'},{n:'Black Sapphire',c:'#111'},{n:'Phytonic Blue',c:'#1a3355'}],specs:{Length:'4709mm',Width:'1827mm',Height:'1435mm',Wheelbase:'2851mm','Gnd Clear':'140mm','Fuel Tank':'59L','Top Speed':'250 km/h','0-100':'5.8s'},features:['iDrive 7.0 OS','Harman Kardon Sound','Gesture Control','HUD Display','Live Cockpit Pro','Driving Assistant'],int:['Vernasca Black','Cognac Vernasca','Oyster White']},
+  {id:103,brand:'BMW',name:'M340i',seg:'Luxury Sport Sedan',fuel:'Petrol',price:72.75,ps:'₹72.75L',power:374,torque:500,eng:'3.0L TwinPower B58',trans:'Steptronic AT',mileage:'12.5 kmpl',seats:5,boot:480,badge:'luxury',sales:2,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Black Sapphire',c:'#111'},{n:'San Marino Blue',c:'#002266'},{n:'Toronto Red',c:'#aa1100'}],specs:{Length:'4709mm',Width:'1827mm',Height:'1435mm',Wheelbase:'2851mm','Gnd Clear':'140mm','Fuel Tank':'59L','Top Speed':'250 km/h','0-100':'4.4s'},features:['M Sport Suspension','Adaptive M Chassis','Harman Kardon','M Sport Brakes','Launch Control','M TwinPower Turbo'],int:['Black Full Merino','Cognac Merino']},
+  {id:104,brand:'BMW',name:'5 Series',seg:'Luxury Sedan',fuel:'Petrol/Hybrid',price:72.90,ps:'₹72.90L',power:286,torque:450,eng:'2.0L TwinPower',trans:'Steptronic AT',mileage:'13.1 kmpl',seats:5,boot:530,badge:'luxury',sales:3,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Black Sapphire',c:'#111'},{n:'Skyscraper Grey',c:'#888'},{n:'Tanzanite Blue',c:'#223377'}],specs:{Length:'5060mm',Width:'1900mm',Height:'1515mm',Wheelbase:'2995mm','Gnd Clear':'130mm','Fuel Tank':'69L','Top Speed':'250 km/h','0-100':'5.4s'},features:['iDrive 8.5 OS','Bowers & Wilkins 3D Sound','Curved 14.9" Display','Massage Seats','ADAS Level 2','Panoramic Roof'],int:['Cognac Merino Leather','Black Merino Leather','Ivory White Leather']},
+  {id:105,brand:'BMW',name:'7 Series',seg:'Ultra Luxury Sedan',fuel:'Petrol/Hybrid',price:161.00,ps:'₹1.61Cr',power:381,torque:520,eng:'3.0L TwinPower B58',trans:'Steptronic AT',mileage:'10.9 kmpl',seats:5,boot:520,badge:'luxury',sales:1,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Black Sapphire',c:'#111'},{n:'Skyscraper Grey',c:'#888'},{n:'Sophisto Grey',c:'#555'}],specs:{Length:'5391mm',Width:'1950mm',Height:'1544mm',Wheelbase:'3215mm','Gnd Clear':'120mm','Fuel Tank':'78L','Top Speed':'250 km/h','0-100':'5.0s'},features:['BMW Theatre Screen 31"','iDrive 8.5','Bowers & Wilkins Diamond Sound','Executive Lounge Seating','Air Suspension','Curved Interaction Bar'],int:['Merino Leather','Nappa Full Leather','Cashmere Wool Blend']},
+  {id:106,brand:'BMW',name:'X1',seg:'Luxury Compact SUV',fuel:'Petrol/Diesel/Electric',price:50.90,ps:'₹50.90L',power:204,torque:300,eng:'2.0L TwinPower',trans:'Steptronic AT',mileage:'14.0 kmpl',seats:5,boot:540,badge:'luxury',sales:5,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Jet Black',c:'#111'},{n:'Mineral Grey',c:'#888'},{n:'Phytonic Blue',c:'#1a3355'}],specs:{Length:'4500mm',Width:'1845mm',Height:'1642mm',Wheelbase:'2692mm','Gnd Clear':'200mm','Fuel Tank':'54L','Top Speed':'225 km/h','0-100':'7.6s'},features:['iDrive 8.5','ADAS Level 2','Panoramic Roof','Curved Display','Live Cockpit','xDrive AWD'],int:['Sensatec Black','Cognac Leather','Oyster Leather']},
+  {id:107,brand:'BMW',name:'X3',seg:'Luxury SUV',fuel:'Petrol/Diesel',price:72.90,ps:'₹72.90L',power:252,torque:400,eng:'2.0L TwinPower',trans:'Steptronic AT',mileage:'13.2 kmpl',seats:5,boot:550,badge:'luxury',sales:3,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Black Sapphire',c:'#111'},{n:'Mineral Grey',c:'#888'},{n:'Tanzanite Blue',c:'#223377'}],specs:{Length:'4716mm',Width:'1891mm',Height:'1660mm',Wheelbase:'2864mm','Gnd Clear':'204mm','Fuel Tank':'65L','Top Speed':'245 km/h','0-100':'5.6s'},features:['iDrive 8.5','ADAS Level 2','Panoramic Roof','Harman Kardon','xDrive AWD','Laserlight'],int:['Cognac Leather','Black Leather','Ivory Nappa']},
+  {id:108,brand:'BMW',name:'X5',seg:'Luxury SUV',fuel:'Petrol/Diesel/Hybrid',price:96.90,ps:'₹96.90L',power:381,torque:520,eng:'3.0L TwinPower',trans:'Steptronic AT',mileage:'12.0 kmpl',seats:5,boot:650,badge:'luxury',sales:2,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Black Sapphire',c:'#111'},{n:'Phytonic Blue',c:'#1a3355'},{n:'Dark Graphite',c:'#333'}],specs:{Length:'4922mm',Width:'2004mm',Height:'1745mm',Wheelbase:'2975mm','Gnd Clear':'213mm','Fuel Tank':'83L','Top Speed':'250 km/h','0-100':'5.0s'},features:['iDrive 8.5','Bowers & Wilkins Sound','Panoramic Roof','Off-Road Package','Air Suspension','Gesture Control'],int:['Black Merino Leather','Cognac Merino','Ivory White Merino']},
+  {id:109,brand:'BMW',name:'X7',seg:'Ultra Luxury SUV',fuel:'Petrol/Diesel',price:126.00,ps:'₹1.26Cr',power:381,torque:520,eng:'3.0L TwinPower',trans:'Steptronic AT',mileage:'11.29 kmpl',seats:6,boot:326,badge:'luxury',sales:1,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Black Sapphire',c:'#111'},{n:'Mineral White',c:'#f0f0f0'},{n:'Sophisto Grey',c:'#666'}],specs:{Length:'5151mm',Width:'2000mm',Height:'1805mm',Wheelbase:'3105mm','Gnd Clear':'213mm','Fuel Tank':'83L','Top Speed':'250 km/h','0-100':'4.7s'},features:['Bowers & Wilkins Diamond Sound','iDrive 8.5','Electric Panoramic Roof','Massage Seats','4-Zone AC','Laserlight Headlights'],int:['Ivory White Merino','Cognac Merino','Black Merino']},
+  {id:110,brand:'BMW',name:'M5',seg:'Ultra Luxury Sport Sedan',fuel:'Petrol Hybrid',price:205.00,ps:'₹2.05Cr',power:727,torque:1000,eng:'4.4L V8 M TwinPower Hybrid',trans:'M Steptronic',mileage:'9.1 kmpl',seats:5,boot:500,badge:'luxury',sales:1,luxBrand:'BMW',colors:[{n:'Frozen Deep Green Metallic',c:'#1a3322'},{n:'Black Sapphire',c:'#111'},{n:'Alpine White',c:'#f8f8f8'},{n:'Toronto Red',c:'#aa1100'}],specs:{Length:'5095mm',Width:'1903mm',Height:'1469mm',Wheelbase:'2975mm','Gnd Clear':'130mm','Fuel Tank':'65L','Top Speed':'305 km/h','0-100':'3.5s'},features:['M xDrive AWD','M Compound Brakes','Carbon Fibre Roof','Bowers & Wilkins Sound','M Steering Wheel','Launch Control'],int:['Black Full Merino','Cognac M Leather','Two-tone Merino']},
+  {id:111,brand:'BMW',name:'Z4',seg:'Luxury Roadster',fuel:'Petrol',price:92.00,ps:'₹92.00L',power:340,torque:500,eng:'3.0L TwinPower B58',trans:'Steptronic AT',mileage:'11.5 kmpl',seats:2,boot:281,badge:'luxury',sales:1,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Frozen Grey Metallic',c:'#888'},{n:'San Marino Blue',c:'#002266'},{n:'Portimao Blue',c:'#003388'}],specs:{Length:'4323mm',Width:'1864mm',Height:'1304mm',Wheelbase:'2470mm','Gnd Clear':'122mm','Fuel Tank':'52L','Top Speed':'250 km/h','0-100':'4.5s'},features:['Soft Top Convertible','Harman Kardon Sound','M Sport Aerodynamics','Launch Control','Head-Up Display','Adaptive Suspension'],int:['Black Full Merino','Cognac Merino Leather']},
+  {id:112,brand:'BMW',name:'iX',seg:'Electric Luxury SUV',fuel:'Electric',price:139.90,ps:'₹1.39Cr',power:523,torque:765,eng:'Electric AWD',trans:'Single Speed',mileage:'630 km range',seats:5,boot:500,badge:'electric',sales:1,luxBrand:'BMW',colors:[{n:'Mineral White',c:'#f0f0f0'},{n:'Sophisto Grey',c:'#666'},{n:'Fluid Black',c:'#111'},{n:'Cape York Green',c:'#336633'}],specs:{Length:'4953mm',Width:'1967mm',Height:'1696mm',Wheelbase:'3000mm','Gnd Clear':'198mm','Battery':'111.5 kWh','Top Speed':'200 km/h','0-100':'4.6s'},features:['111.5 kWh Battery','DC Fast Charge 200kW','Bowers & Wilkins Crystal Sound','Self-healing Surface','Gesture Control','AR HUD'],int:['Castanea Brown Cashmere','Black Sensatec+Merino','Ivory White Cashmere']},
+  {id:113,brand:'BMW',name:'i7',seg:'Electric Ultra Luxury Sedan',fuel:'Electric',price:258.00,ps:'₹2.58Cr',power:536,torque:745,eng:'Electric AWD',trans:'Single Speed',mileage:'625 km range',seats:5,boot:500,badge:'electric',sales:1,luxBrand:'BMW',colors:[{n:'Alpine White',c:'#f8f8f8'},{n:'Mineral White',c:'#f0f0f0'},{n:'Black Sapphire',c:'#111'},{n:'Skyscraper Grey',c:'#888'}],specs:{Length:'5391mm',Width:'1950mm',Height:'1544mm',Wheelbase:'3215mm','Gnd Clear':'120mm','Battery':'101.7 kWh','Top Speed':'240 km/h','0-100':'4.7s'},features:['BMW Theatre Screen 31.3"','Bowers & Wilkins Diamond Sound','iDrive 8.5','Rear Executive Lounge','Crystal Headlights','B-pillar Crystal Handles'],int:['Merino Cashmere Full Leather','Alcantara + Merino','Exclusive Nappa']},
+  // MERCEDES-BENZ
+  {id:114,brand:'Mercedes-Benz',name:'A-Class Limousine',seg:'Luxury Sedan',fuel:'Petrol',price:44.46,ps:'₹44.46L',power:163,torque:250,eng:'1.3L Turbo',trans:'DCT AT',mileage:'15.5 kmpl',seats:5,boot:420,badge:'luxury',sales:4,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Cosmos Black',c:'#111'},{n:'Mountain Grey',c:'#888'},{n:'Designo Patagonia Red',c:'#aa1100'}],specs:{Length:'4549mm',Width:'1796mm',Height:'1420mm',Wheelbase:'2729mm','Gnd Clear':'135mm','Fuel Tank':'50L','Top Speed':'240 km/h','0-100':'8.2s'},features:['MBUX Infotainment','Hey Mercedes AI','Augmented Reality Navigation','LED High-Performance Headlights','7-speed DCT','Park Assist'],int:['Lugano Black Leather','Classic Red/Black']},
+  {id:115,brand:'Mercedes-Benz',name:'CLA',seg:'Luxury Coupe Sedan',fuel:'Petrol',price:55.00,ps:'₹55.00L',power:204,torque:300,eng:'1.5L EQ Boost',trans:'8G-DCT',mileage:'14.5 kmpl',seats:5,boot:455,badge:'luxury',sales:3,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Cosmos Black',c:'#111'},{n:'Mountain Grey',c:'#888'},{n:'Spectral Blue',c:'#112244'}],specs:{Length:'4688mm',Width:'1830mm',Height:'1439mm',Wheelbase:'2729mm','Gnd Clear':'125mm','Fuel Tank':'50L','Top Speed':'240 km/h','0-100':'7.0s'},features:['MBUX Hyperscreen','EQ Boost 48V','Ambient Lighting','Park Assist Plus','Wireless Charging','MULTIBEAM LED'],int:['Black MB Tex','Macchiato Beige Leather']},
+  {id:116,brand:'Mercedes-Benz',name:'C-Class',seg:'Luxury Sedan',fuel:'Petrol',price:58.65,ps:'₹58.65L',power:204,torque:300,eng:'1.5L EQ Boost',trans:'9G-TRONIC AT',mileage:'14.6 kmpl',seats:5,boot:455,badge:'luxury',sales:5,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Obsidian Black',c:'#111'},{n:'Selenite Grey',c:'#888'},{n:'Spectral Blue',c:'#112244'}],specs:{Length:'4751mm',Width:'1820mm',Height:'1437mm',Wheelbase:'2865mm','Gnd Clear':'125mm','Fuel Tank':'66L','Top Speed':'250 km/h','0-100':'7.3s'},features:['MBUX Hyperscreen','Burmester 3D Sound','64-color Ambient Light','AR Navigation','MULTIBEAM LED','Hey Mercedes AI'],int:['Black MB Tex','Mahogany Brown Leather','Espresso Brown Nappa']},
+  {id:117,brand:'Mercedes-Benz',name:'E-Class',seg:'Luxury Sedan',fuel:'Petrol',price:78.50,ps:'₹78.50L',power:258,torque:400,eng:'2.0L Turbo',trans:'9G-TRONIC AT',mileage:'12.9 kmpl',seats:5,boot:540,badge:'luxury',sales:3,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Obsidian Black',c:'#111'},{n:'Cavansite Blue',c:'#113355'},{n:'High Tech Silver',c:'#bbb'}],specs:{Length:'4949mm',Width:'1880mm',Height:'1468mm',Wheelbase:'2961mm','Gnd Clear':'140mm','Fuel Tank':'66L','Top Speed':'250 km/h','0-100':'6.2s'},features:['MBUX Hyperscreen Trio','Burmester High-End Sound','Active Ambient Light','Rear Seat Tablet','E-Active Body Control','Digital Light'],int:['Black Nappa Leather','Macchiato Beige Nappa','Sienna Brown Nappa']},
+  {id:118,brand:'Mercedes-Benz',name:'S-Class',seg:'Ultra Luxury Sedan',fuel:'Petrol',price:177.00,ps:'₹1.77Cr',power:429,torque:520,eng:'3.0L Inline-6 EQ Boost',trans:'9G-TRONIC AT',mileage:'10.5 kmpl',seats:5,boot:550,badge:'luxury',sales:1,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Obsidian Black',c:'#111'},{n:'Selenite Grey',c:'#888'},{n:'Emerald Green',c:'#1a4422'}],specs:{Length:'5289mm',Width:'1954mm',Height:'1503mm',Wheelbase:'3216mm','Gnd Clear':'120mm','Fuel Tank':'76L','Top Speed':'250 km/h','0-100':'4.9s'},features:['MBUX Hyperscreen 56"','Burmester 4D Surround Sound','Rear Axle Steering','Executive Rear Seat Package','AI Body Control','Augmented Reality HUD'],int:['Black Nappa Leather','Macchiato Beige Nappa','Exclusive Nappa']},
+  {id:119,brand:'Mercedes-Benz',name:'Maybach S-Class',seg:'Ultra Luxury Flagship',fuel:'Petrol',price:300.00,ps:'₹3.00Cr',power:558,torque:900,eng:'4.0L V8 Biturbo',trans:'9G-TRONIC AT',mileage:'8.5 kmpl',seats:4,boot:490,badge:'luxury',sales:1,luxBrand:'Mercedes-Benz',colors:[{n:'Nautical Blue',c:'#112244'},{n:'Cashmere White',c:'#f8f8f8'},{n:'Onyx Black',c:'#111'},{n:'Rubellite Red',c:'#880022'}],specs:{Length:'5469mm',Width:'1992mm',Height:'1503mm',Wheelbase:'3396mm','Gnd Clear':'110mm','Fuel Tank':'80L','Top Speed':'250 km/h','0-100':'4.4s'},features:['Executive Champagne Cooler','Rear Seat Massage+Ventilation','Magic Sky Control Roof','Burmester Signature Sound','Individual Maybach Monograms','Rear Tablet & Footrests'],int:['Exclusive Nappa Two-tone','Pure White/Black Nappa','Designo Hyacinth Red']},
+  {id:120,brand:'Mercedes-Benz',name:'GLA',seg:'Luxury Compact SUV',fuel:'Petrol',price:50.80,ps:'₹50.80L',power:163,torque:250,eng:'1.3L Turbo',trans:'7G-DCT',mileage:'15.0 kmpl',seats:5,boot:421,badge:'luxury',sales:4,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Cosmos Black',c:'#111'},{n:'Mountain Grey',c:'#888'},{n:'Designo Patagonia',c:'#aa1100'}],specs:{Length:'4410mm',Width:'1834mm',Height:'1611mm',Wheelbase:'2729mm','Gnd Clear':'200mm','Fuel Tank':'51L','Top Speed':'226 km/h','0-100':'8.2s'},features:['MBUX Navigation','Hey Mercedes AI','Park Assist','Wireless Charging','LED Headlights','7-Speed DCT'],int:['Lugano Black','Macchiato Beige']},
+  {id:121,brand:'Mercedes-Benz',name:'GLC',seg:'Luxury SUV',fuel:'Petrol',price:73.97,ps:'₹73.97L',power:258,torque:400,eng:'2.0L Turbo 4MATIC',trans:'9G-TRONIC AT',mileage:'12.5 kmpl',seats:5,boot:620,badge:'luxury',sales:3,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Obsidian Black',c:'#111'},{n:'Selenite Grey',c:'#888'},{n:'Emerald Green',c:'#1a4422'}],specs:{Length:'4716mm',Width:'1890mm',Height:'1640mm',Wheelbase:'2888mm','Gnd Clear':'200mm','Fuel Tank':'70L','Top Speed':'230 km/h','0-100':'5.7s'},features:['MBUX 12.3" Display','Burmester Sound','Panoramic Sunroof','Active Suspension','ADAS Level 2','Hands-Free Tailgate'],int:['Black MB Tex','Macchiato Beige Leather','Nappa Brown']},
+  {id:122,brand:'Mercedes-Benz',name:'GLE',seg:'Luxury Large SUV',fuel:'Petrol/Diesel',price:96.40,ps:'₹96.40L',power:367,torque:500,eng:'3.0L Turbo',trans:'9G-TRONIC AT',mileage:'11.4 kmpl',seats:5,boot:630,badge:'luxury',sales:2,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Cavansite Blue',c:'#113355'},{n:'Selenite Grey',c:'#888'},{n:'Obsidian Black',c:'#111'}],specs:{Length:'4924mm',Width:'2019mm',Height:'1796mm',Wheelbase:'2995mm','Gnd Clear':'230mm','Fuel Tank':'85L','Top Speed':'250 km/h','0-100':'5.7s'},features:['E-Active Body Control','Burmester Surround Sound','MBUX Infotainment','Thermotronic AC','Driving Assistance Plus','4MATIC AWD'],int:['Black Nappa Leather','Macchiato Beige','Sienna Brown']},
+  {id:123,brand:'Mercedes-Benz',name:'GLS',seg:'Ultra Luxury 7-Seater SUV',fuel:'Petrol',price:133.00,ps:'₹1.33Cr',power:429,torque:520,eng:'3.0L EQ Boost',trans:'9G-TRONIC AT',mileage:'10.1 kmpl',seats:7,boot:355,badge:'luxury',sales:1,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Obsidian Black',c:'#111'},{n:'Selenite Grey',c:'#888'}],specs:{Length:'5206mm',Width:'2030mm',Height:'1831mm',Wheelbase:'3135mm','Gnd Clear':'250mm','Fuel Tank':'100L','Top Speed':'250 km/h','0-100':'5.2s'},features:['MBUX Rear Tablet','Burmester 3D Sound','3rd Row Captain Seats','Airmatic Suspension','64-color Ambient Light','Rear Entertainment'],int:['Black Nappa Leather','Macchiato Beige Nappa','Exclusive Cappuccino']},
+  {id:124,brand:'Mercedes-Benz',name:'G-Class',seg:'Ultra Luxury Off-Road',fuel:'Petrol',price:310.00,ps:'₹3.10Cr',power:585,torque:850,eng:'4.0L V8 Biturbo AMG',trans:'AMG Speedshift AT',mileage:'8.0 kmpl',seats:5,boot:450,badge:'luxury',sales:1,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Obsidian Black',c:'#111'},{n:'Designo Night Black',c:'#090909'},{n:'Selenite Grey Matte',c:'#777'}],specs:{Length:'4624mm',Width:'1931mm',Height:'1969mm',Wheelbase:'2890mm','Gnd Clear':'241mm','Fuel Tank':'100L','Top Speed':'220 km/h','0-100':'4.5s'},features:['3 Locking Differentials','AMG Performance System','Burl Walnut Interior','AMG RIDE CONTROL+','G-Mode','Exclusive Manufaktur Options'],int:['Black Nappa Leather AMG','Designo Individual Leather','Exclusive Manufaktur']},
+  {id:125,brand:'Mercedes-Benz',name:'EQA',seg:'Electric Luxury SUV',fuel:'Electric',price:67.20,ps:'₹67.20L',power:190,torque:385,eng:'Electric',trans:'Single Speed',mileage:'426 km range',seats:5,boot:340,badge:'electric',sales:2,luxBrand:'Mercedes-Benz',colors:[{n:'Polar White',c:'#f8f8f8'},{n:'Mountain Grey',c:'#888'},{n:'Cosmos Black',c:'#111'},{n:'Patagonia Red',c:'#aa1100'}],specs:{Length:'4463mm',Width:'1834mm',Height:'1620mm',Wheelbase:'2729mm','Gnd Clear':'140mm','Battery':'70.5 kWh','Top Speed':'160 km/h','0-100':'8.0s'},features:['MBUX Multimedia','DC Fast Charging','Hey Mercedes AI','Augmented Reality','Wireless Charging','MULTIBEAM LED'],int:['Lugano Black','Macchiato Beige Leather']},
+  // AUDI
+  {id:126,brand:'Audi',name:'A4',seg:'Luxury Sedan',fuel:'Petrol',price:44.00,ps:'₹44.00L',power:190,torque:320,eng:'2.0L TFSI',trans:'S-tronic DCT',mileage:'13.5 kmpl',seats:5,boot:480,badge:'luxury',sales:4,luxBrand:'Audi',colors:[{n:'Ibis White',c:'#f8f8f8'},{n:'Mythos Black',c:'#111'},{n:'Daytona Grey Pearl',c:'#777'},{n:'Floret Silver',c:'#bbb'}],specs:{Length:'4762mm',Width:'1847mm',Height:'1428mm',Wheelbase:'2820mm','Gnd Clear':'130mm','Fuel Tank':'54L','Top Speed':'250 km/h','0-100':'7.3s'},features:['MMI Navigation Plus','Bang & Olufsen Sound','Matrix LED Headlights','Virtual Cockpit','Park Assist','Quattro AWD (optional)'],int:['Rock Grey Leather','Okapi Brown Leather','Black Leather']},
+  {id:127,brand:'Audi',name:'A6',seg:'Luxury Executive Sedan',fuel:'Petrol',price:67.00,ps:'₹67.00L',power:245,torque:370,eng:'2.0L TFSI Mild Hybrid',trans:'S-tronic DCT',mileage:'12.0 kmpl',seats:5,boot:530,badge:'luxury',sales:2,luxBrand:'Audi',colors:[{n:'Ibis White',c:'#f8f8f8'},{n:'Myth Black',c:'#111'},{n:'Floret Silver',c:'#bbb'},{n:'Navarra Blue',c:'#002266'}],specs:{Length:'4939mm',Width:'1886mm',Height:'1457mm',Wheelbase:'2924mm','Gnd Clear':'130mm','Fuel Tank':'63L','Top Speed':'250 km/h','0-100':'6.3s'},features:['MMI Touch Plus','Bang & Olufsen 3D Sound','Matrix LED','Adaptive Air Suspension','Virtual Cockpit Plus','Quattro AWD'],int:['Black Leather','Beige Leather','Okapi Brown']},
+  {id:128,brand:'Audi',name:'A8',seg:'Ultra Luxury Flagship Sedan',fuel:'Petrol',price:152.00,ps:'₹1.52Cr',power:340,torque:500,eng:'3.0L TFSI Mild Hybrid',trans:'8-Speed AT',mileage:'10.5 kmpl',seats:5,boot:505,badge:'luxury',sales:1,luxBrand:'Audi',colors:[{n:'Glacier White',c:'#f8f8f8'},{n:'Myth Black',c:'#111'},{n:'Moonbeam Silver',c:'#bbb'},{n:'Navarra Blue',c:'#002266'}],specs:{Length:'5302mm',Width:'1945mm',Height:'1488mm',Wheelbase:'3128mm','Gnd Clear':'120mm','Fuel Tank':'82L','Top Speed':'250 km/h','0-100':'5.6s'},features:['MMI Navigation Plus','Bang & Olufsen 3D Sound','Predictive Active Suspension','Rear Seat Massage','OLED Digital Matrix LED','Quattro AWD'],int:['Valcona Leather','Valcona with Silk Inlays','Individual Fine Nappa']},
+  {id:129,brand:'Audi',name:'Q3',seg:'Luxury Compact SUV',fuel:'Petrol',price:45.69,ps:'₹45.69L',power:190,torque:320,eng:'2.0L TFSI',trans:'S-tronic DCT',mileage:'14.0 kmpl',seats:5,boot:530,badge:'luxury',sales:4,luxBrand:'Audi',colors:[{n:'Ibis White',c:'#f8f8f8'},{n:'Myth Black',c:'#111'},{n:'Turbo Blue',c:'#0033aa'},{n:'Floret Silver',c:'#bbb'}],specs:{Length:'4484mm',Width:'1856mm',Height:'1616mm',Wheelbase:'2680mm','Gnd Clear':'191mm','Fuel Tank':'60L','Top Speed':'221 km/h','0-100':'7.3s'},features:['MMI Navigation Plus','Panoramic Sunroof','Matrix LED','Quattro AWD','Virtual Cockpit','Park Assist'],int:['Rock Grey Leather','Beige Leather','Black Sport']},
+  {id:130,brand:'Audi',name:'Q5',seg:'Luxury Mid SUV',fuel:'Petrol',price:67.31,ps:'₹67.31L',power:245,torque:370,eng:'2.0L TFSI Mild Hybrid',trans:'S-tronic DCT',mileage:'12.5 kmpl',seats:5,boot:550,badge:'luxury',sales:3,luxBrand:'Audi',colors:[{n:'Ibis White',c:'#f8f8f8'},{n:'Myth Black',c:'#111'},{n:'Floret Silver',c:'#bbb'},{n:'Chronos Grey',c:'#555'},{n:'Navarra Blue',c:'#002266'}],specs:{Length:'4683mm',Width:'1893mm',Height:'1659mm',Wheelbase:'2820mm','Gnd Clear':'210mm','Fuel Tank':'75L','Top Speed':'237 km/h','0-100':'6.3s'},features:['MMI Plus','B&O 3D Sound','Matrix LED','Quattro AWD','Park Assist Plus','Panoramic Sunroof'],int:['Black Leather','Beige Leather','Okapi Brown']},
+  {id:131,brand:'Audi',name:'Q7',seg:'Luxury Large SUV',fuel:'Petrol',price:96.69,ps:'₹96.69L',power:340,torque:500,eng:'3.0L TFSI Mild Hybrid',trans:'8-Speed AT',mileage:'11.5 kmpl',seats:7,boot:770,badge:'luxury',sales:2,luxBrand:'Audi',colors:[{n:'Glacier White',c:'#f8f8f8'},{n:'Myth Black',c:'#111'},{n:'Floret Silver',c:'#bbb'},{n:'Daytona Grey Pearl',c:'#777'}],specs:{Length:'5063mm',Width:'1970mm',Height:'1741mm',Wheelbase:'2994mm','Gnd Clear':'207mm','Fuel Tank':'85L','Top Speed':'250 km/h','0-100':'5.9s'},features:['MMI Navigation Plus','Bang & Olufsen 3D Sound','7-Seat Layout','Adaptive Air Suspension','Quattro AWD','Panoramic Sunroof'],int:['Rock Grey Leather','Okapi Brown Leather','Beige Leather']},
+  {id:132,brand:'Audi',name:'Q8',seg:'Luxury Coupe SUV',fuel:'Petrol',price:125.00,ps:'₹1.25Cr',power:340,torque:500,eng:'3.0L TFSI Mild Hybrid',trans:'8-Speed AT',mileage:'10.8 kmpl',seats:5,boot:605,badge:'luxury',sales:1,luxBrand:'Audi',colors:[{n:'Glacier White',c:'#f8f8f8'},{n:'Myth Black',c:'#111'},{n:'Navarra Blue',c:'#002266'},{n:'Daytona Grey Pearl',c:'#777'}],specs:{Length:'4986mm',Width:'1995mm',Height:'1705mm',Wheelbase:'2994mm','Gnd Clear':'207mm','Fuel Tank':'85L','Top Speed':'250 km/h','0-100':'5.9s'},features:['Bang & Olufsen 3D Sound','MMI Navigation Plus','OLED Taillights','Quattro AWD','Panoramic Sunroof','Rear-Axle Steering'],int:['Black Valcona Leather','Beige Valcona Leather','Individual Leather']},
+  {id:133,brand:'Audi',name:'RS Q8',seg:'Ultra Performance SUV',fuel:'Petrol',price:177.00,ps:'₹1.77Cr',power:441,torque:600,eng:'4.0L V8 TFSI Biturbo',trans:'8-Speed AT',mileage:'9.5 kmpl',seats:5,boot:605,badge:'luxury',sales:1,luxBrand:'Audi',colors:[{n:'Glacier White',c:'#f8f8f8'},{n:'Myth Black',c:'#111'},{n:'Daytona Grey Pearl',c:'#777'},{n:'Sebring Black',c:'#222'}],specs:{Length:'5002mm',Width:'1995mm',Height:'1697mm',Wheelbase:'2994mm','Gnd Clear':'204mm','Fuel Tank':'85L','Top Speed':'305 km/h','0-100':'3.8s'},features:['RS Sport Exhaust','Carbon Fibre Package','Bang & Olufsen Sound','Ceramic Brakes','Sport Differential','Torque Vectoring'],int:['Black RS Sport Leather','Valcona RS Leather']},
+  {id:134,brand:'Audi',name:'e-tron GT',seg:'Electric Luxury Sport',fuel:'Electric',price:182.00,ps:'₹1.82Cr',power:476,torque:630,eng:'Electric AWD',trans:'2-Speed AT',mileage:'487 km range',seats:5,boot:405,badge:'electric',sales:1,luxBrand:'Audi',colors:[{n:'Floret Silver',c:'#bbb'},{n:'Myth Black',c:'#111'},{n:'Kemora Grey',c:'#777'},{n:'Tactical Green',c:'#1a3322'}],specs:{Length:'4989mm',Width:'1964mm',Height:'1396mm',Wheelbase:'2900mm','Gnd Clear':'130mm','Battery':'93.4 kWh','Top Speed':'245 km/h','0-100':'4.1s'},features:['800V Fast Charging','Quattro e-AWD','Matrix LED Headlights','Bang & Olufsen Sound','Air Suspension','Regenerative Braking'],int:['Black Fine Nappa','Beige Fine Nappa','Exclusive Valcona']},
+  // PORSCHE
+  {id:135,brand:'Porsche',name:'Macan',seg:'Luxury Compact SUV',fuel:'Electric/Petrol',price:89.00,ps:'₹89.00L',power:408,torque:660,eng:'Electric RWD',trans:'Single Speed',mileage:'613 km range',seats:5,boot:540,badge:'luxury',sales:2,luxBrand:'Porsche',colors:[{n:'Carrara White Metallic',c:'#f8f8f8'},{n:'Jet Black Metallic',c:'#111'},{n:'Gentian Blue Metallic',c:'#001155'},{n:'Mamba Green',c:'#1a4422'}],specs:{Length:'4784mm',Width:'1938mm',Height:'1622mm',Wheelbase:'2893mm','Gnd Clear':'198mm','Battery':'100 kWh','Top Speed':'220 km/h','0-100':'5.2s'},features:['Porsche Dynamic Light System','Bose Surround Sound','PASM Sport Suspension','Keyless Entry','Adaptive Cruise Control','Porsche Connect'],int:['Black Leather','Bordeaux Red Leather','Chalk Leather']},
+  {id:136,brand:'Porsche',name:'Cayenne',seg:'Luxury SUV',fuel:'Petrol/Hybrid',price:132.00,ps:'₹1.32Cr',power:340,torque:450,eng:'3.0L Turbo',trans:'Porsche 8-Speed AT',mileage:'10.1 kmpl',seats:5,boot:770,badge:'luxury',sales:2,luxBrand:'Porsche',colors:[{n:'White',c:'#f8f8f8'},{n:'Black',c:'#111'},{n:'Crayon',c:'#aaa'},{n:'Gentian Blue',c:'#001155'},{n:'Guards Red',c:'#cc0000'}],specs:{Length:'4918mm',Width:'1983mm',Height:'1696mm',Wheelbase:'2895mm','Gnd Clear':'190mm','Fuel Tank':'90L','Top Speed':'243 km/h','0-100':'6.0s'},features:['Porsche Communication Management','Bose Surround Sound','Air Suspension','4-Zone Climate','Rear-Axle Steering','PASM Sport Suspension'],int:['Black Leather','Two-tone Cognac/Black','Chalk Grey Leather']},
+  {id:137,brand:'Porsche',name:'Panamera',seg:'Luxury Sport Sedan',fuel:'Petrol/Hybrid',price:194.00,ps:'₹1.94Cr',power:330,torque:450,eng:'2.9L V6 Turbo',trans:'PDK Dual-Clutch',mileage:'10.5 kmpl',seats:4,boot:495,badge:'luxury',sales:1,luxBrand:'Porsche',colors:[{n:'Carrara White Metallic',c:'#f8f8f8'},{n:'Jet Black Metallic',c:'#111'},{n:'Gentian Blue',c:'#001155'},{n:'Mahogany Metallic',c:'#5a2211'}],specs:{Length:'5049mm',Width:'1937mm',Height:'1426mm',Wheelbase:'2950mm','Gnd Clear':'120mm','Fuel Tank':'80L','Top Speed':'265 km/h','0-100':'5.3s'},features:['Rear-Axle Steering','Bose Surround Sound','4-Zone Climate','Night Vision Assist','Porsche InnoDrive','Sport Chrono Package'],int:['Cognac Leather','Black Full Leather','Two-tone Platinum']},
+  {id:138,brand:'Porsche',name:'Taycan',seg:'Electric Luxury Sport Sedan',fuel:'Electric',price:199.00,ps:'₹1.99Cr',power:571,torque:650,eng:'Electric AWD',trans:'2-Speed AT',mileage:'503 km range',seats:4,boot:407,badge:'electric',sales:1,luxBrand:'Porsche',colors:[{n:'Carrara White Metallic',c:'#f8f8f8'},{n:'Jet Black Metallic',c:'#111'},{n:'Gentian Blue',c:'#001155'},{n:'Frozen Berry Metallic',c:'#440033'}],specs:{Length:'4963mm',Width:'1966mm',Height:'1381mm',Wheelbase:'2900mm','Gnd Clear':'130mm','Battery':'93.4 kWh','Top Speed':'260 km/h','0-100':'3.7s'},features:['800V Architecture','350kW DC Fast Charging','Bose Surround Sound','Air Suspension','Night Vision','Sport Chrono Package'],int:['Black Leather','Bordeaux Red Leather','Chalk Leather']},
+  {id:139,brand:'Porsche',name:'911',seg:'Luxury Sports Car',fuel:'Petrol',price:205.00,ps:'₹2.05Cr',power:385,torque:450,eng:'3.0L Flat-6 Turbo',trans:'PDK Dual-Clutch',mileage:'10.8 kmpl',seats:4,boot:132,badge:'luxury',sales:1,luxBrand:'Porsche',colors:[{n:'Carrara White Metallic',c:'#f8f8f8'},{n:'Jet Black',c:'#111'},{n:'GT Silver Metallic',c:'#bbb'},{n:'Guards Red',c:'#cc0000'},{n:'Racing Yellow',c:'#ffee00'}],specs:{Length:'4519mm',Width:'1852mm',Height:'1300mm',Wheelbase:'2450mm','Gnd Clear':'110mm','Fuel Tank':'67L','Top Speed':'294 km/h','0-100':'4.2s'},features:['Rear-Engine Layout','PASM Active Suspension','Sport Chrono Package','Porsche Dynamic Chassis Control','Launch Control','Wet Mode'],int:['Black Full Leather','Bordeaux Red Leather','GT Sport Seat Leather']},
+  // LAND ROVER
+  {id:140,brand:'Land Rover',name:'Defender',seg:'Ultra Luxury Off-Road',fuel:'Petrol/Diesel',price:103.00,ps:'₹1.03Cr',power:300,torque:400,eng:'2.0L/3.0L',trans:'ZF 8-Speed AT',mileage:'11.5 kmpl',seats:5,boot:405,badge:'luxury',sales:2,luxBrand:'Land Rover',colors:[{n:'Gondwana Stone',c:'#c8b88a'},{n:'Santorini Black',c:'#111'},{n:'Fuji White',c:'#f8f8f8'},{n:'Firenze Red',c:'#880000'},{n:'Carpathian Grey',c:'#777'}],specs:{Length:'5018mm',Width:'2073mm',Height:'1974mm',Wheelbase:'3022mm','Gnd Clear':'291mm','Fuel Tank':'90L','Top Speed':'191 km/h','0-100':'8.1s'},features:['Terrain Response 2','Wade Sensing','Clearsight Rear Camera','Configurable Terrain Response','Air Suspension','Meridian Sound'],int:['Windsor Leather','Semi-Aniline Leather','Espresso/Ivory Premium']},
+  {id:141,brand:'Land Rover',name:'Range Rover Sport',seg:'Ultra Luxury SUV',fuel:'Petrol/Diesel/Hybrid',price:138.00,ps:'₹1.38Cr',power:530,torque:700,eng:'4.4L Twin Turbo',trans:'ZF 8-Speed AT',mileage:'9.2 kmpl',seats:5,boot:780,badge:'luxury',sales:1,luxBrand:'Land Rover',colors:[{n:'Ostuni Pearl White',c:'#f8f8f8'},{n:'Santorini Black',c:'#111'},{n:'Carpathian Grey',c:'#777'},{n:'Firenze Red',c:'#880000'},{n:'Charente Grey',c:'#888'}],specs:{Length:'4956mm',Width:'2073mm',Height:'1820mm',Wheelbase:'2997mm','Gnd Clear':'298mm','Fuel Tank':'105L','Top Speed':'283 km/h','0-100':'4.3s'},features:['Meridian Signature Sound','Pivi Pro Infotainment','22" Pixel LED','Air Suspension','Digital Air Vents','Massage Seats'],int:['Windsor Leather','Semi-Aniline Leather','Espresso/Ivory Premium']},
+  {id:142,brand:'Land Rover',name:'Range Rover',seg:'Ultra Luxury Flagship SUV',fuel:'Petrol/Diesel/Electric',price:231.00,ps:'₹2.31Cr',power:530,torque:750,eng:'4.4L/P510e Hybrid',trans:'ZF 8-Speed AT',mileage:'8.5 kmpl',seats:4,boot:818,badge:'luxury',sales:1,luxBrand:'Land Rover',colors:[{n:'Ostuni Pearl White',c:'#f8f8f8'},{n:'Santorini Black',c:'#111'},{n:'Charente Grey',c:'#888'},{n:'Arroios Green',c:'#1a3322'}],specs:{Length:'5252mm',Width:'2209mm',Height:'1870mm',Wheelbase:'3197mm','Gnd Clear':'313mm','Fuel Tank':'105L','Top Speed':'250 km/h','0-100':'4.4s'},features:['Rear Private Suite','Meridian Signature 3D Sound','SV Bespoke Customization','Executive Class Seating','AI Navigation','Terrain Clearance Assist'],int:['Premium Nappa Leather','Ultrafabrics Dinamica','SV Bespoke Any Color']},
+  {id:143,brand:'Land Rover',name:'Discovery',seg:'Luxury Premium SUV',fuel:'Petrol/Diesel',price:94.00,ps:'₹94.00L',power:300,torque:650,eng:'3.0L Inline-6',trans:'ZF 8-Speed AT',mileage:'10.5 kmpl',seats:7,boot:258,badge:'luxury',sales:1,luxBrand:'Land Rover',colors:[{n:'Fuji White',c:'#f8f8f8'},{n:'Santorini Black',c:'#111'},{n:'Carpathian Grey',c:'#777'},{n:'Hakuba Silver',c:'#bbb'}],specs:{Length:'4957mm',Width:'2073mm',Height:'1888mm',Wheelbase:'2923mm','Gnd Clear':'283mm','Fuel Tank':'85L','Top Speed':'209 km/h','0-100':'7.8s'},features:['3rd Row Seating','All-Terrain Capability','Meridian Sound','Terrain Response 2','Air Suspension','7 Individual Seat Configuration'],int:['Windsor Leather','Ebony Leather','Light Cloud Leather']},
+  {id:144,brand:'Land Rover',name:'Velar',seg:'Luxury Coupe SUV',fuel:'Petrol/Diesel',price:92.00,ps:'₹92.00L',power:247,torque:365,eng:'2.0L Turbo',trans:'ZF 8-Speed AT',mileage:'11.0 kmpl',seats:5,boot:673,badge:'luxury',sales:1,luxBrand:'Land Rover',colors:[{n:'Fuji White',c:'#f8f8f8'},{n:'Santorini Black',c:'#111'},{n:'Eiger Grey',c:'#777'},{n:'Portofino Blue',c:'#002266'}],specs:{Length:'4803mm',Width:'2145mm',Height:'1665mm',Wheelbase:'2874mm','Gnd Clear':'213mm','Fuel Tank':'60L','Top Speed':'217 km/h','0-100':'7.1s'},features:['Pivi Pro Infotainment','Touch Pro Duo System','Meridian Sound','Air Suspension','Clearsight Rear Camera','Configurable Dynamics'],int:['Ebony Leather','Ivory Leather','Light Oyster Leather']},
+  // VOLVO
+  {id:145,brand:'Volvo',name:'XC40',seg:'Luxury Compact SUV',fuel:'Petrol/Electric',price:47.25,ps:'₹47.25L',power:197,torque:300,eng:'2.0L/Electric',trans:'AT/Single Speed',mileage:'14.5 kmpl',seats:5,boot:452,badge:'luxury',sales:3,luxBrand:'Volvo',colors:[{n:'Ice White',c:'#f8f8f8'},{n:'Onyx Black',c:'#111'},{n:'Vapour Grey',c:'#aaa'},{n:'Fjord Blue',c:'#003355'},{n:'Fusion Red',c:'#aa1100'}],specs:{Length:'4425mm',Width:'1863mm',Height:'1652mm',Wheelbase:'2702mm','Gnd Clear':'211mm','Fuel Tank':'54L','Top Speed':'200 km/h','0-100':'8.1s'},features:['Google Android Infotainment','Harman Kardon Sound','Pilot Assist ADAS','Wireless CarPlay','City Safety','Clean Zone Air Purifier'],int:['Black Leather','Blonde Leather','Charcoal Leather']},
+  {id:146,brand:'Volvo',name:'XC60',seg:'Luxury Mid SUV',fuel:'Petrol/Hybrid',price:72.00,ps:'₹72.00L',power:253,torque:350,eng:'2.0L T6 AWD',trans:'8-Speed AT',mileage:'13.5 kmpl',seats:5,boot:505,badge:'luxury',sales:2,luxBrand:'Volvo',colors:[{n:'Crystal White Pearl',c:'#f8f8f8'},{n:'Onyx Black',c:'#111'},{n:'Denim Blue',c:'#334488'},{n:'Pebble Grey',c:'#888'}],specs:{Length:'4688mm',Width:'1902mm',Height:'1658mm',Wheelbase:'2865mm','Gnd Clear':'216mm','Fuel Tank':'71L','Top Speed':'210 km/h','0-100':'6.3s'},features:['Google Android Infotainment','Bowers & Wilkins Sound','Pilot Assist Level 2','Air Purifier','Panoramic Sunroof','AWD System'],int:['Charcoal Leather','Blond Leather','Amber Leather']},
+  {id:147,brand:'Volvo',name:'XC90',seg:'Luxury Large SUV',fuel:'Petrol/Hybrid',price:104.65,ps:'₹1.04Cr',power:294,torque:420,eng:'2.0L T8 Hybrid AWD',trans:'8-Speed AT',mileage:'12.5 kmpl',seats:7,boot:262,badge:'luxury',sales:1,luxBrand:'Volvo',colors:[{n:'Crystal White Pearl',c:'#f8f8f8'},{n:'Onyx Black',c:'#111'},{n:'Osmium Grey',c:'#888'},{n:'Denim Blue',c:'#334488'}],specs:{Length:'4953mm',Width:'1958mm',Height:'1776mm',Wheelbase:'2984mm','Gnd Clear':'238mm','Fuel Tank':'71L','Top Speed':'210 km/h','0-100':'5.3s'},features:['Google Android Infotainment','Bowers & Wilkins Sound','Crystal Gear Shift','7-Seat Luxury','Air Suspension Option','Pilot Assist'],int:['Charcoal Leather 7-seat','Blonde Leather 7-seat','Denim Blue']},
+  {id:148,brand:'Volvo',name:'S90',seg:'Luxury Flagship Sedan',fuel:'Petrol/Hybrid',price:85.00,ps:'₹85.00L',power:420,torque:640,eng:'2.0L T8 Hybrid AWD',trans:'8-Speed AT',mileage:'11.5 kmpl',seats:5,boot:500,badge:'luxury',sales:1,luxBrand:'Volvo',colors:[{n:'Crystal White Pearl',c:'#f8f8f8'},{n:'Onyx Black',c:'#111'},{n:'Osmium Grey',c:'#888'},{n:'Denim Blue',c:'#334488'}],specs:{Length:'4963mm',Width:'1879mm',Height:'1443mm',Wheelbase:'2941mm','Gnd Clear':'130mm','Fuel Tank':'71L','Top Speed':'230 km/h','0-100':'4.9s'},features:['Bowers & Wilkins Sound','Pilot Assist ADAS','Crystal Gear Shift','Ventilated Seats','Air Suspension','Full ADAS Suite'],int:['Charcoal Leather','Blonde Leather','Maroon Leather']},
+  {id:149,brand:'Volvo',name:'EX90',seg:'Electric Luxury Large SUV',fuel:'Electric',price:149.00,ps:'₹1.49Cr',power:517,torque:910,eng:'Electric AWD',trans:'Single Speed',mileage:'580 km range',seats:7,boot:310,badge:'electric',sales:1,luxBrand:'Volvo',colors:[{n:'Crystal White',c:'#f8f8f8'},{n:'Onyx Black',c:'#111'},{n:'Osmium Grey',c:'#888'},{n:'Denim Blue',c:'#334488'}],specs:{Length:'4953mm',Width:'1964mm',Height:'1744mm',Wheelbase:'2984mm','Gnd Clear':'207mm','Battery':'111 kWh','Top Speed':'210 km/h','0-100':'4.9s'},features:['111 kWh Battery','LiDAR Safety System','Bowers & Wilkins Sound','V2G Charging','Smart Zone Front End','11" Rear Screens'],int:['Charcoal Leather 7-seat','Denim Leather','Nordvit Leather']},
+  // LEXUS
+  {id:150,brand:'Lexus',name:'ES',seg:'Luxury Sedan',fuel:'Hybrid',price:62.50,ps:'₹62.50L',power:215,torque:221,eng:'2.5L Hybrid',trans:'e-CVT',mileage:'20.0 kmpl',seats:5,boot:450,badge:'luxury',sales:2,luxBrand:'Lexus',colors:[{n:'Sonic Chrome',c:'#c0c0c0'},{n:'Graphite Black Glass',c:'#111'},{n:'White Nova Glass',c:'#f8f8f8'},{n:'Heat Blue Glass',c:'#1a3355'}],specs:{Length:'4975mm',Width:'1865mm',Height:'1445mm',Wheelbase:'2870mm','Gnd Clear':'130mm','Fuel Tank':'50L','Top Speed':'180 km/h','0-100':'7.9s'},features:['Mark Levinson Sound','Lexus Safety System+ 3.0','Self-Charging Hybrid','12.3" Touchscreen','HUD Display','Heads-Up Display'],int:['Black Leather','Flaxen Leather','Ivory Leather']},
+  {id:151,brand:'Lexus',name:'NX',seg:'Luxury Compact SUV',fuel:'Hybrid',price:66.50,ps:'₹66.50L',power:243,torque:244,eng:'2.5L Hybrid',trans:'e-CVT',mileage:'18.0 kmpl',seats:5,boot:520,badge:'luxury',sales:2,luxBrand:'Lexus',colors:[{n:'Sonic Titanium',c:'#aaa'},{n:'Graphite Black',c:'#111'},{n:'White Nova',c:'#f8f8f8'},{n:'Heat Blue',c:'#1a3355'}],specs:{Length:'4660mm',Width:'1865mm',Height:'1660mm',Wheelbase:'2690mm','Gnd Clear':'177mm','Fuel Tank':'50L','Top Speed':'175 km/h','0-100':'7.7s'},features:['Mark Levinson Sound','Safety System+ 3.0','Digital Outer Mirror','14" Touchscreen','E-Latch Door','Self-Charging Hybrid'],int:['Black Leather','Flaxen Leather','White NuLuxe']},
+  {id:152,brand:'Lexus',name:'RX',seg:'Luxury Mid SUV',fuel:'Hybrid',price:96.80,ps:'₹96.80L',power:246,torque:369,eng:'2.5L Hybrid AWD',trans:'e-CVT',mileage:'15.5 kmpl',seats:5,boot:612,badge:'luxury',sales:1,luxBrand:'Lexus',colors:[{n:'Sonic Chrome',c:'#c0c0c0'},{n:'Caviar',c:'#111'},{n:'White Nova Glass',c:'#f8f8f8'},{n:'Nori Green',c:'#1a3322'}],specs:{Length:'4890mm',Width:'1920mm',Height:'1700mm',Wheelbase:'2850mm','Gnd Clear':'200mm','Fuel Tank':'72L','Top Speed':'180 km/h','0-100':'7.2s'},features:['Mark Levinson Premium Sound','Safety System+ 3.0','Self-Charging Hybrid','Panoramic View Monitor','Digital Outer Mirror','E-FOUR AWD'],int:['Black Leather','Tan Leather','Ivory Premium Leather']},
+  {id:153,brand:'Lexus',name:'LS',seg:'Ultra Luxury Flagship Sedan',fuel:'Hybrid',price:196.00,ps:'₹1.96Cr',power:354,torque:350,eng:'3.5L V6 Hybrid',trans:'Multi Stage Hybrid AT',mileage:'15.4 kmpl',seats:5,boot:430,badge:'luxury',sales:1,luxBrand:'Lexus',colors:[{n:'Sonic Quartz',c:'#f8f8f8'},{n:'Black',c:'#111'},{n:'Sonic Titanium',c:'#aaa'},{n:'Manganese Luster',c:'#555'}],specs:{Length:'5235mm',Width:'1900mm',Height:'1450mm',Wheelbase:'3125mm','Gnd Clear':'147mm','Fuel Tank':'82L','Top Speed':'250 km/h','0-100':'5.4s'},features:['Kiriko Glass Ornamentation','Mark Levinson 3D Surround','Rear Seat Entertainment','Shiatsu Massage Seats','28-Way Power Seats','Advanced Pre-Collision'],int:['Crimson/Black Leather','White Semi-Aniline','Camel/Noble Brown']}
+];
+
+const UPCOMING = [
+  {id:201, brand:'Maruti Suzuki', name:'eVX', seg:'Electric SUV', fuel:'Electric', eta:'Late 2026', exPrice:'₹20-25 Lakh', power:'140 bhp', range:'500+ km', features:['60kWh Battery', 'AWD Option', 'Panoramic Sunroof', 'ADAS']},
+  {id:202, brand:'Tata', name:'Harrier EV', seg:'Electric SUV', fuel:'Electric', eta:'Mid 2026', exPrice:'₹25-30 Lakh', power:'200 bhp', range:'500 km', features:['AWD Capability', 'V2L Support', '12.3" Display', 'Terrain Modes']},
+  {id:203, brand:'Hyundai', name:'Creta EV', seg:'Electric SUV', fuel:'Electric', eta:'Early 2026', exPrice:'₹22-26 Lakh', power:'138 bhp', range:'450 km', features:['45kWh Battery', 'Level 2 ADAS', 'V2L Support', 'Dual Displays']},
+  {id:204, brand:'Mahindra', name:'Thar.e', seg:'Electric Off-road SUV', fuel:'Electric', eta:'2027', exPrice:'₹25-30 Lakh', power:'250 bhp', range:'400+ km', features:['VW INGLO Platform', 'AWD Standard', 'Retro-Futuristic Design', 'High Clearance']},
+  {id:205, brand:'Kia', name:'EV9', seg:'Ultra Luxury Electric SUV', fuel:'Electric', eta:'Late 2026', exPrice:'₹90L-1.2Cr', power:'384 bhp', range:'541 km', features:['99.8kWh Battery', 'Swivel Seats', 'Level 3 ADAS', 'Meridian Sound']}
+];
+
+// App State
+let activeFilters = { seg: 'All', brand: 'All', fuel: 'All', search: '' };
+let compareList = [];
+
+// Init UI Elements
+function initApp() {
+  document.getElementById('cnt-total').textContent = CARS.length + LUXURY.length;
+  document.getElementById('cnt-brands').textContent = new Set([...CARS, ...LUXURY].map(c => c.brand)).size;
+  document.getElementById('cnt-lux').textContent = LUXURY.length;
+  document.getElementById('cnt-ev').textContent = [...CARS, ...LUXURY].filter(c => c.fuel.includes('Electric')).length;
+  
+  initTicker();
+  initTabsAndFilters();
+  applyFilters();
+  renderLuxGrid();
+  renderUpcoming();
+  initCharts();
+  updatePriceCounts();
+  initCursor();
+  initReveal();
+  
+  // Hide loader
+  setTimeout(() => {
+    const loader = document.getElementById('loader');
+    loader.classList.add('out');
+    setTimeout(() => loader.style.display = 'none', 800);
+  }, 1000);
+}
+
+function initTicker() {
+  const allCars = [...CARS, ...LUXURY];
+  const items = allCars.map(c => `<span class="t-item"><span class="t-dot"></span>${c.brand} ${c.name} — ${c.ps}</span>`).join('');
+  document.getElementById('ticker').innerHTML = items + items;
+}
+
+function initTabsAndFilters() {
+  // Segments
+  const segs = ['All', ...new Set(CARS.map(c => c.seg))];
+  const segEl = document.getElementById('seg-tabs');
+  segs.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.className = 'seg-tab' + (i===0?' active':'');
+    b.textContent = s;
+    b.onclick = () => {
+      segEl.querySelectorAll('.seg-tab').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      activeFilters.seg = s;
+      applyFilters();
+    };
+    segEl.appendChild(b);
+  });
+  
+  // Luxury Tabs
+  const luxBrands = ['All', ...new Set(LUXURY.map(c => c.brand))];
+  const luxEl = document.getElementById('lux-tabs');
+  luxBrands.forEach((b, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'seg-tab' + (i===0?' active':'');
+    btn.textContent = b;
+    btn.onclick = () => {
+      luxEl.querySelectorAll('.seg-tab').forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+      renderLuxGrid(b);
+    };
+    luxEl.appendChild(btn);
+  });
+
+  // Brands & Fuels
+  const brands = ['All', ...new Set(CARS.map(c => c.brand))];
+  const fuels = ['All', ...new Set(CARS.map(c => c.fuel.split('/')[0]))];
+  populateFilter('brand-filters', brands, 'brand');
+  populateFilter('fuel-filters', fuels, 'fuel');
+}
+
+function populateFilter(id, items, key) {
+  const el = document.getElementById(id);
+  items.forEach(item => {
+    const b = document.createElement('button');
+    b.className = 'fb' + (item === 'All' ? ' active' : '');
+    b.textContent = item;
+    b.onclick = () => {
+      el.querySelectorAll('.fb').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      activeFilters[key] = item;
+      applyFilters();
+    };
+    el.appendChild(b);
+  });
+}
+
+function applyFilters() {
+  let data = CARS;
+  const s = document.getElementById('inline-search').value.toLowerCase();
+  if(activeFilters.seg !== 'All') data = data.filter(c => c.seg === activeFilters.seg);
+  if(activeFilters.brand !== 'All') data = data.filter(c => c.brand === activeFilters.brand);
+  if(activeFilters.fuel !== 'All') data = data.filter(c => c.fuel.split('/')[0] === activeFilters.fuel);
+  if(s) data = data.filter(c => c.brand.toLowerCase().includes(s) || c.name.toLowerCase().includes(s) || c.seg.toLowerCase().includes(s));
+  
+  const sort = document.getElementById('sort-select').value;
+  if(sort === 'price-asc') data.sort((a,b) => a.price - b.price);
+  else if(sort === 'price-desc') data.sort((a,b) => b.price - a.price);
+  else if(sort === 'power-desc') data.sort((a,b) => b.power - a.power);
+  else if(sort === 'name') data.sort((a,b) => a.name.localeCompare(b.name));
+  
+  document.getElementById('shown-count').textContent = data.length;
+  renderGrid('main-grid', data);
+}
+
+function renderGrid(id, data) {
+  const grid = document.getElementById(id);
+  grid.innerHTML = '';
+  data.forEach(car => {
+    const inCmp = compareList.find(c => c.id === car.id);
+    const imgUrl = getImg(car) || 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg';
+    grid.innerHTML += `
+      <div class="car-card" onclick="openModal(${car.id})">
+        <div class="card-img-wrap">
+          <img src="${imgUrl}" class="card-img" alt="${car.name}" loading="lazy">
+          <div class="card-img-overlay"></div>
+          <div class="card-badges">
+            ${car.badge ? `<span class="cbadge badge-${car.badge}">${car.badge.toUpperCase()}</span>` : ''}
+          </div>
+          <div class="card-seg">${car.seg.toUpperCase()}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-brand">${car.brand.toUpperCase()}</div>
+          <div class="card-name">${car.name}</div>
+          <div class="card-price">${car.ps}</div>
+          <div class="card-specs">
+            <div class="cs"><div class="cs-v">${car.power}</div><div class="cs-k">BHP</div></div>
+            <div class="cs"><div class="cs-v">${car.mileage.split(' ')[0]}</div><div class="cs-k">${car.fuel.includes('Electric')?'KM':'KMPL'}</div></div>
+            <div class="cs"><div class="cs-v">${car.seats}</div><div class="cs-k">SEATS</div></div>
+            <div class="cs"><div class="cs-v">${car.eng.split(' ')[0]}</div><div class="cs-k">ENG</div></div>
+          </div>
+          <div class="card-btns">
+            <button class="cbt" onclick="event.stopPropagation();openModal(${car.id})">SPECS</button>
+            <button class="cbt ${inCmp?'cmp-on':''}" id="cbtn-${car.id}" onclick="event.stopPropagation();toggleCompare(${car.id})">${inCmp?'✓ COMPARING':'+ COMPARE'}</button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function renderLuxGrid(brand = 'All') {
+  let data = LUXURY;
+  if(brand !== 'All') data = data.filter(c => c.brand === brand);
+  renderGrid('lux-grid', data);
+}
+
+function renderUpcoming() {
+  const grid = document.getElementById('upcoming-grid');
+  grid.innerHTML = '';
+  UPCOMING.forEach(car => {
+    grid.innerHTML += `
+      <div class="up-card">
+        <div class="up-img-wrap">
+          <div class="card-img-fallback">🚀</div>
+          <div class="up-overlay"></div>
+          <div class="up-eta">${car.eta}</div>
+        </div>
+        <div class="up-body">
+          <div class="up-brand">${car.brand.toUpperCase()}</div>
+          <div class="up-name">${car.name}</div>
+          <div class="up-price">Expected: ${car.exPrice}</div>
+          <div class="up-features">
+            ${car.features.map(f => `<span class="up-feat">${f}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// Compare Feature
+function toggleCompare(id) {
+  const car = [...CARS, ...LUXURY].find(c => c.id === id);
+  const idx = compareList.findIndex(c => c.id === id);
+  if(idx > -1) {
+    compareList.splice(idx, 1);
+  } else {
+    if(compareList.length >= 2) compareList.shift();
+    compareList.push(car);
+  }
+  updateCompareUI();
+}
+
+function updateCompareUI() {
+  document.querySelectorAll('.cbt').forEach(b => {
+    const idStr = b.id.replace('cbtn-','');
+    if(!idStr) return;
+    const isSel = compareList.find(c => c.id == idStr);
+    b.className = 'cbt' + (isSel ? ' cmp-on' : '');
+    b.textContent = isSel ? '✓ COMPARING' : '+ COMPARE';
+  });
+  
+  const fc = document.getElementById('float-cmp');
+  if(compareList.length > 0) {
+    fc.classList.add('show');
+    document.getElementById('fcmp-txt').textContent = `${compareList.length} CAR${compareList.length>1?'S':''} SELECTED`;
+  } else {
+    fc.classList.remove('show');
+  }
+  loadCmpList();
+  if(compareList.length === 2) renderCompare();
+}
+
+function goCompare() {
+  document.getElementById('compare').scrollIntoView({behavior:'smooth'});
+  if(compareList.length === 2) renderCompare();
+}
+
+function clearCompare() {
+  compareList = [];
+  updateCompareUI();
+  document.getElementById('ctable').classList.remove('vis');
+  document.getElementById('radar-box').classList.remove('vis');
+  document.getElementById('cslot-a').className = 'cslot';
+  document.getElementById('cslot-a').innerHTML = '<div class="cslot-empty">SELECT CAR A<br><span style="font-size:.48rem;color:rgba(84,110,122,0.4)">CLICK A CAR ABOVE</span></div>';
+  document.getElementById('cslot-b').className = 'cslot';
+  document.getElementById('cslot-b').innerHTML = '<div class="cslot-empty">SELECT CAR B<br><span style="font-size:.48rem;color:rgba(84,110,122,0.4)">CLICK A CAR ABOVE</span></div>';
+}
+
+function loadCmpList() {
+  const el = document.getElementById('cmp-list');
+  el.innerHTML = '';
+  const range = document.getElementById('cmp-budget').value;
+  let data = [...CARS, ...LUXURY];
+  if(range !== 'all') {
+    const [mn, mx] = range.split('-').map(Number);
+    data = data.filter(c => c.price >= mn && c.price <= mx);
+  }
+  data.forEach(car => {
+    const inCmp = compareList.find(c => c.id === car.id);
+    const b = document.createElement('button');
+    b.className = 'cc-btn' + (inCmp ? ' sel' : '');
+    b.textContent = car.brand + ' ' + car.name;
+    b.onclick = () => toggleCompare(car.id);
+    el.appendChild(b);
+  });
+}
+
+function renderCompare() {
+  const a = compareList[0], b = compareList[1];
+  if(!a || !b) return;
+  const renderSlot = (car) => `
+    <img src="${getImg(car) || ''}" class="cslot-img" onerror="this.style.display='none'">
+    <div class="cslot-name">${car.brand} ${car.name}</div>
+    <div class="cslot-price">${car.ps}</div>
+    <div style="font-family:var(--font-m);font-size:.6rem;color:var(--muted);margin-top:.5rem">${car.eng} · ${car.power}bhp</div>
+  `;
+  document.getElementById('cslot-a').className = 'cslot filled';
+  document.getElementById('cslot-a').innerHTML = renderSlot(a);
+  document.getElementById('cslot-b').className = 'cslot filled';
+  document.getElementById('cslot-b').innerHTML = renderSlot(b);
+  
+  document.getElementById('cth-a').textContent = a.brand + ' ' + a.name;
+  document.getElementById('cth-b').textContent = b.brand + ' ' + b.name;
+  
+  const tbody = document.getElementById('ctbody');
+  tbody.innerHTML = '';
+  const fields = [
+    {l:'Price', ka:'price', kb:'price', format:v=>'₹'+v+'L', inv:true},
+    {l:'Power', ka:'power', kb:'power', format:v=>v+' bhp'},
+    {l:'Torque', ka:'torque', kb:'torque', format:v=>v+' Nm'},
+    {l:'Mileage', ka:'mileage', kb:'mileage', format:v=>v},
+    {l:'Boot Space', ka:'boot', kb:'boot', format:v=>v?v+' L':'N/A'},
+    {l:'0-100 km/h', ksa:'0-100', ksb:'0-100', format:v=>v, inv:true}
+  ];
+  
+  fields.forEach(f => {
+    const va = f.ksa ? parseFloat(a.specs[f.ksa]) : a[f.ka];
+    const vb = f.ksb ? parseFloat(b.specs[f.ksb]) : b[f.kb];
+    let ca='', cb='';
+    if(!isNaN(va) && !isNaN(vb) && va !== vb) {
+      if(f.inv) { ca = va<vb?'td-win':'td-lose'; cb = vb<va?'td-win':'td-lose'; }
+      else { ca = va>vb?'td-win':'td-lose'; cb = vb>va?'td-win':'td-lose'; }
+    }
+    const valA = f.ksa ? a.specs[f.ksa] : f.format(a[f.ka]);
+    const valB = f.ksb ? b.specs[f.ksb] : f.format(b[f.kb]);
+    tbody.innerHTML += `<tr><td>${f.l}</td><td class="${ca}">${valA}</td><td class="${cb}">${valB}</td></tr>`;
+  });
+  
+  document.getElementById('ctable').classList.add('vis');
+  
+  // Radar Chart
+  const norm = (v, mn, mx) => Math.max(0, Math.min(100, ((v - mn) / (mx - mn)) * 100));
+  const cA = '#00f5ff', cB = '#ff006e';
+  
+  const ctx = document.getElementById('radarChart');
+  if(window.rc) window.rc.destroy();
+  window.rc = new Chart(ctx.getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels: ['Power', 'Torque', 'Economy', 'Practicality', 'Value', 'Acceleration'],
+      datasets: [
+        { label: a.name, data: [norm(a.power,50,400), norm(a.torque,80,700), norm(parseFloat(a.mileage)||50,8,35), norm(a.boot||200,100,800), norm(100-a.price*.4,0,100), norm(20-parseFloat(a.specs['0-100']),0,20)], borderColor: cA, backgroundColor: cA+'22', pointBackgroundColor: cA },
+        { label: b.name, data: [norm(b.power,50,400), norm(b.torque,80,700), norm(parseFloat(b.mileage)||50,8,35), norm(b.boot||200,100,800), norm(100-b.price*.4,0,100), norm(20-parseFloat(b.specs['0-100']),0,20)], borderColor: cB, backgroundColor: cB+'22', pointBackgroundColor: cB }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, scales:{r:{ticks:{display:false},grid:{color:'rgba(0,245,255,0.1)'},pointLabels:{color:'#e8eaf6',font:{family:'Share Tech Mono',size:10}},angleLines:{color:'rgba(0,245,255,0.1)'}}}, plugins:{legend:{labels:{color:'#e8eaf6',font:{family:'Share Tech Mono'}}}} }
+  });
+  document.getElementById('radar-box').classList.add('vis');
+}
+
+// Budget Filters
+function filterByBudget(range, el) {
+  document.querySelectorAll('.pc').forEach(x => x.classList.remove('act'));
+  el.classList.add('act');
+  const [mn, mx] = range.split('-').map(Number);
+  const data = [...CARS, ...LUXURY].filter(c => c.price >= mn && c.price <= mx);
+  renderGrid('budget-grid', data);
+  document.getElementById('budget-grid').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function updatePriceCounts() {
+  const all = [...CARS, ...LUXURY];
+  const ranges = [['0-5','pb-0-5'],['5-10','pb-5-10'],['10-20','pb-10-20'],['20-50','pb-20-50'],['50-100','pb-50-100'],['100-99999','pb-100-99999']];
+  ranges.forEach(([r, id]) => {
+    const [mn, mx] = r.split('-').map(Number);
+    const countEl = document.getElementById(id);
+    if(countEl) countEl.textContent = all.filter(c => c.price >= mn && c.price <= mx).length + ' CARS';
+  });
+}
+
+// Search Overlay
+function openSearch() {
+  document.getElementById('search-overlay').classList.add('open');
+  document.getElementById('search-big').focus();
+}
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+  document.getElementById('search-big').value = '';
+}
+function bigSearch() {
+  const v = document.getElementById('search-big').value.toLowerCase();
+  const data = [...CARS, ...LUXURY].filter(c => c.brand.toLowerCase().includes(v) || c.name.toLowerCase().includes(v));
+  document.getElementById('search-count').textContent = v ? `FOUND ${data.length} MATCHES` : 'TYPE TO SEARCH ALL 100+ CARS';
+  if(v && data.length > 0) {
+    document.getElementById('inline-search').value = v;
+    activeFilters = { seg: 'All', brand: 'All', fuel: 'All', search: '' };
+    document.getElementById('seg-tabs').querySelectorAll('.seg-tab').forEach((x,i) => x.className='seg-tab'+(i===0?' active':''));
+    document.getElementById('brand-filters').querySelectorAll('.fb').forEach((x,i) => x.className='fb'+(i===0?' active':''));
+    document.getElementById('fuel-filters').querySelectorAll('.fb').forEach((x,i) => x.className='fb'+(i===0?' active':''));
+    applyFilters();
+  }
+}
+function quickSearch(term) {
+  document.getElementById('search-big').value = term;
+  bigSearch();
+  closeSearch();
+  document.getElementById('browse').scrollIntoView({behavior:'smooth'});
+}
+
+// Charts
+function initCharts() {
+  const all = [...CARS, ...LUXURY];
+  // Segment
+  const segData = {};
+  all.forEach(c => { segData[c.seg] = (segData[c.seg]||0) + c.sales; });
+  const chSeg = document.getElementById('ch-seg');
+  if(chSeg) {
+    new Chart(chSeg.getContext('2d'), {
+      type: 'doughnut', data: { labels: Object.keys(segData), datasets: [{ data: Object.values(segData), backgroundColor: ['#00f5ff','#ff006e','#adff2f','#ffd700','#b44fff','#ff8c00','#44ddff','#cc8800'], borderColor: '#080b18', borderWidth: 2 }] },
+      options: { responsive:true, maintainAspectRatio:false, cutout:'65%', plugins:{legend:{position:'right',labels:{color:'#e8eaf6',font:{family:'Share Tech Mono',size:9}}}} }
+    });
+  }
+  // Brand
+  const brandData = {};
+  all.forEach(c => { brandData[c.brand] = (brandData[c.brand]||0) + c.sales; });
+  const bSort = Object.entries(brandData).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const chBrand = document.getElementById('ch-brand');
+  if(chBrand) {
+    new Chart(chBrand.getContext('2d'), {
+      type: 'bar', data: { labels: bSort.map(x=>x[0]), datasets: [{ data: bSort.map(x=>x[1]), backgroundColor: bSort.map((_,i)=>`hsl(${i*30},80%,55%)`) }] },
+      options: { responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(0,245,255,0.1)'},ticks:{color:'#546e7a',font:{family:'Share Tech Mono'}}},y:{grid:{display:false},ticks:{color:'#e8eaf6',font:{family:'Share Tech Mono'}}}} }
+    });
+  }
+  // Fuel
+  const fuelData = {};
+  all.forEach(c => c.fuel.split('/').forEach(f => { fuelData[f.trim()] = (fuelData[f.trim()]||0) + 1; }));
+  const chFuel = document.getElementById('ch-fuel');
+  if(chFuel) {
+    new Chart(chFuel.getContext('2d'), {
+      type: 'pie', data: { labels: Object.keys(fuelData), datasets: [{ data: Object.values(fuelData), backgroundColor: ['#ff8c00','#00f5ff','#adff2f','#b44fff','#ffd700'], borderColor: '#080b18', borderWidth: 2 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{color:'#e8eaf6',font:{family:'Share Tech Mono'}}}} }
+    });
+  }
+  // Scatter
+  const chScatter = document.getElementById('ch-scatter');
+  if(chScatter) {
+    new Chart(chScatter.getContext('2d'), {
+      type: 'scatter', data: { datasets: [{ data: all.map(c=>({x:c.price,y:c.power,car:c})), backgroundColor: '#00f5ffaa', pointRadius: 5 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw.car.brand} ${ctx.raw.car.name}: ₹${ctx.raw.x}L, ${ctx.raw.y}bhp`}}}, scales:{x:{title:{display:true,text:'Price (₹ Lakh)',color:'#ff6b00'},grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#546e7a'}},y:{title:{display:true,text:'Power (bhp)',color:'#ff6b00'},grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#546e7a'}}} }
+    });
+  }
+}
+
+// Modal View
+function openModal(id) {
+  const car = [...CARS, ...LUXURY].find(c => c.id === id);
+  const m = document.getElementById('modal-inner');
+  const imgUrl = getImg(car) || 'https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg';
+  
+  m.innerHTML = `
+    <div class="m-hero">
+      <div class="stage">
+        <div class="stage-rings">
+          <div class="sring" style="width:200px;height:200px"></div>
+          <div class="sring" style="width:160px;height:160px"></div>
+          <div class="sring" style="width:120px;height:120px"></div>
+        </div>
+        <div class="stage-img-wrap" id="stage-wrap" onmousedown="startSpin(event)" onmousemove="doSpin(event)" onmouseup="stopSpin()" onmouseleave="stopSpin()">
+          <img src="${imgUrl}" class="stage-img" id="stage-img" draggable="false">
+        </div>
+        <div class="stage-angle-badge" id="sbadge">FRONT VIEW · 0°</div>
+        <div class="stage-controls">
+          <button class="sc" onclick="mspin(-1)">◀ PAN</button>
+          <button class="sc" id="auto-spin-btn" onclick="toggleAutoSpin()">▶ AUTO</button>
+          <button class="sc" onclick="mspin(1)">PAN ▶</button>
+        </div>
+        <div class="stage-hint">DRAG IMAGE TO ROTATE 360°</div>
+      </div>
+      <div class="m-info">
+        <div class="mi-brand">${car.brand.toUpperCase()}</div>
+        <div class="mi-name">${car.name}</div>
+        <div class="mi-price">${car.ps}</div>
+        <div class="mi-exs">Ex-Showroom Delhi</div>
+        <div class="mi-tags">
+          <span class="mi-tag tag-seg">${car.seg.toUpperCase()}</span>
+          ${car.fuel.split('/').map(f=>`<span class="mi-tag tag-${f.toLowerCase()}">${f.toUpperCase()}</span>`).join('')}
+          <span class="mi-tag tag-trans">${car.trans.toUpperCase()}</span>
+        </div>
+        <div class="m-mini-specs">
+          <div class="ms-box"><div class="ms-l">POWER</div><div class="ms-v">${car.power} bhp</div></div>
+          <div class="ms-box"><div class="ms-l">TORQUE</div><div class="ms-v">${car.torque} Nm</div></div>
+          <div class="ms-box"><div class="ms-l">MILEAGE/RANGE</div><div class="ms-v">${car.mileage}</div></div>
+          <div class="ms-box"><div class="ms-l">0-100 KM/H</div><div class="ms-v">${car.specs['0-100']}</div></div>
+        </div>
+        <div class="color-wrap">
+          <div class="color-title">AVAILABLE COLORS</div>
+          <div class="color-dots">
+            ${car.colors.map((c,i)=>`<div class="cdot${i===0?' active':''}" style="background:${c.c}" onclick="selectColor(this,'${c.n}')"></div>`).join('')}
+          </div>
+          <div class="color-name-display" id="cname">${car.colors[0].n.toUpperCase()}</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="m-tabs">
+      <button class="m-tab active" onclick="switchTab(1,this)">FULL SPECS</button>
+      <button class="m-tab" onclick="switchTab(2,this)">KEY FEATURES</button>
+      <button class="m-tab" onclick="switchTab(3,this)">INTERIOR</button>
+    </div>
+    
+    <div class="m-view active" id="mv-1">
+      <div class="specs-grid">
+        ${Object.entries(car.specs).map(([k,v])=>`<div class="spec-box"><div class="sb-l">${k}</div><div class="sb-v">${v}</div></div>`).join('')}
+      </div>
+    </div>
+    
+    <div class="m-view" id="mv-2">
+      <div class="feat-grid">
+        ${car.features.map((f,i)=>`<div class="feat-chip ${i<3?'hi':'std'}">${f}</div>`).join('')}
+      </div>
+    </div>
+    
+    <div class="m-view" id="mv-3">
+      <div class="int-grid">
+        ${car.int.map((n,i)=>`
+          <div class="int-card ${i===0?'sel':''}" onclick="selInt(this)">
+            <img src="${imgUrl}" class="int-img" style="filter: hue-rotate(${i*90}deg) brightness(0.6) sepia(0.5);">
+            <div class="int-name">${n.toUpperCase()}</div>
+            <div class="int-desc">Premium cabin trim with specific accents.</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('modal-bg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+  document.body.style.overflow = '';
+  stopAutoSpin();
+}
+function outsideClose(e) {
+  if(e.target.id === 'modal-bg') closeModal();
+}
+
+function switchTab(idx, el) {
+  document.querySelectorAll('.m-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.m-view').forEach(v => v.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mv-'+idx).classList.add('active');
+}
+
+function selectColor(el, name) {
+  document.querySelectorAll('.cdot').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('cname').textContent = name.toUpperCase();
+  document.getElementById('stage-img').style.filter = `hue-rotate(${Math.random()*60 - 30}deg)`;
+}
+
+function selInt(el) {
+  document.querySelectorAll('.int-card').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// Simple 360 Simulator
+let angle = 0, isDragging = false, startX, spinInterval;
+function mspin(dir) { angle += dir * 15; updateStageImg(); }
+function startSpin(e) { isDragging = true; startX = e.clientX; stopAutoSpin(); }
+function doSpin(e) {
+  if(!isDragging) return;
+  const dx = e.clientX - startX;
+  if(Math.abs(dx) > 5) { angle += dx > 0 ? 5 : -5; startX = e.clientX; updateStageImg(); }
+}
+function stopSpin() { isDragging = false; }
+function updateStageImg() {
+  const img = document.getElementById('stage-img');
+  if(!img) return;
+  let ang = angle % 360; if(ang < 0) ang += 360;
+  let scaleX = 1;
+  if(ang > 90 && ang < 270) scaleX = -1; // Flip to simulate back
+  const scale = 1 - Math.abs(ang % 180 - 90)/400; 
+  img.style.transform = `scaleX(${scaleX}) scaleY(${scale})`;
+  const view = (ang < 45 || ang >= 315) ? 'FRONT' : (ang >= 45 && ang < 135) ? 'SIDE' : (ang >= 135 && ang < 225) ? 'REAR' : 'SIDE';
+  document.getElementById('sbadge').textContent = `${view} VIEW · ${Math.round(ang)}°`;
+}
+function toggleAutoSpin() {
+  const btn = document.getElementById('auto-spin-btn');
+  if(spinInterval) { stopAutoSpin(); }
+  else {
+    btn.classList.add('spinning');
+    spinInterval = setInterval(() => { angle += 2; updateStageImg(); }, 30);
+  }
+}
+function stopAutoSpin() {
+  clearInterval(spinInterval); spinInterval = null;
+  const btn = document.getElementById('auto-spin-btn');
+  if(btn) btn.classList.remove('spinning');
+}
+
+// Reveal logic
+function initReveal() {
+  if (typeof IntersectionObserver !== 'undefined') {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.rev').forEach(el => obs.observe(el));
+  } else {
+    document.querySelectorAll('.rev').forEach(el => el.classList.add('in'));
+  }
+}
+
+// Cursor logic
+function initCursor() {
+  const cur = document.getElementById('cur'), cur2 = document.getElementById('cur2');
+  if(!cur || !cur2) return;
+  let mx = 0, my = 0, cx = 0, cy = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; cur2.style.left = mx+'px'; cur2.style.top = my+'px'; });
+  (function loop() {
+    cx += (mx - cx)*0.15; cy += (my - cy)*0.15;
+    cur.style.left = cx+'px'; cur.style.top = cy+'px';
+    requestAnimationFrame(loop);
+  })();
+}
+
+// Run!
+window.onload = initApp;
+</script>
+</body>
+</html>
